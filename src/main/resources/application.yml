@@ -1,0 +1,24 @@
+server:
+  port: 3000
+
+spring:
+  # PosgreSQL
+  datasource:
+    url: jdbc:postgresql://localhost:5432/banking
+    username: faiyaz
+    password: root
+
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        '[format_sql]': true
+
+# JWT
+jwt:
+  # Jwt access token expiration time in hours
+  expiration: 2
+  secret: 'd0a011bfaa39c393dc5ab7e325b795c6540ccd31646337c9e3ae7653d992bbfd77d9b4fb71acc0dd295ec74269'
