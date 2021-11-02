@@ -5,7 +5,9 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.tsystems.banking.api.request.RegisterRequest;
 import com.tsystems.banking.api.response.LoginResponse;
+import com.tsystems.banking.models.Account;
 import com.tsystems.banking.models.User;
+import com.tsystems.banking.services.account.AccountService;
 import com.tsystems.banking.services.jwt.JwtService;
 import com.tsystems.banking.services.user.UserService;
 import java.util.HashMap;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class Auth {
   private final UserService userService;
   private final JwtService jwtService;
+  private final AccountService accountService;
   private final BCryptPasswordEncoder passwordEncoder;
 
   @Value("${jwt.expiration}")
@@ -34,55 +37,58 @@ public class Auth {
   /**
    * @param userService
    * @param jwtService
+   * @param accountService
    * @param passwordEncoder
    */
   @Autowired
   public Auth(
     UserService userService,
     JwtService jwtService,
+    AccountService accountService,
     BCryptPasswordEncoder passwordEncoder
   ) {
     this.userService = userService;
     this.jwtService = jwtService;
     this.passwordEncoder = passwordEncoder;
+    this.accountService = accountService;
   }
 
   @PostMapping(path = "/register")
   public ResponseEntity<LoginResponse> registerUser(
-    @RequestBody RegisterRequest request,
-    HttpServletRequest req
+    @RequestBody RegisterRequest registerInput,
+    HttpServletRequest request
   ) {
     // TODO: Implement data validation
 
     // Generate a username from email
     String username =
-      request.getEmail().split("@")[0] + (int) (Math.random() * 100);
+      registerInput.getEmail().split("@")[0] + (int) (Math.random() * 100);
 
     // Create a new user
     User user = userService.createUser(
       new User(
-        request.getFirstName(),
-        request.getLastName(),
+        registerInput.getFirstName(),
+        registerInput.getLastName(),
         username,
-        request.getEmail(),
-        passwordEncoder.encode(request.getPassword()),
-        request.getContact()
+        registerInput.getEmail(),
+        passwordEncoder.encode(registerInput.getPassword()),
+        registerInput.getContact()
       )
     );
 
-    // TODO: Implement account creation
+    accountService.createAccount(new Account(user.getId(), 0.0));
 
     // Generate accessToken & refreshToken for the user
     String accessToken = jwtService.signToken(
       user.getUsername(),
-      req.getLocalName(),
+      request.getLocalName(),
       Optional.empty(),
       Optional.of(JWT_EXPIRATION_TIME_IN_HRS)
     );
 
     String refreshToken = jwtService.signToken(
       user.getUsername(),
-      req.getLocalName(),
+      request.getLocalName(),
       Optional.empty(),
       Optional.empty()
     );

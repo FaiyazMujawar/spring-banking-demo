@@ -26,6 +26,7 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
   private final AuthenticationManager authenticationManager;
   private final JwtService jwtService;
   private final AppConfig appConfig;
+  private final String APPLICATION_JSON = "application/json";
 
   /**
    * @param authenticationManager
@@ -94,6 +95,8 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
       Optional.empty(),
       Optional.empty()
     );
+
+    response.setContentType(APPLICATION_JSON);
 
     new ObjectMapper()
     .writeValue(

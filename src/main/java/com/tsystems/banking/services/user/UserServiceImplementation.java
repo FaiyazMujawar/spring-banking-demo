@@ -26,12 +26,12 @@ public class UserServiceImplementation
   }
 
   @Override
-  public Optional<User> getUserById(Long userId) {
+  public Optional<User> findById(Long userId) {
     return userRepo.findById(userId);
   }
 
   @Override
-  public Optional<User> getUserByUsername(String username) {
+  public Optional<User> findByUsername(String username) {
     return userRepo.findByUsername(username);
   }
 
