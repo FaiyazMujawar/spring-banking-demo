@@ -1,8 +1,10 @@
 package com.tsystems.banking.services.account;
 
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+
+import com.tsystems.banking.exceptions.ApiException;
 import com.tsystems.banking.models.Account;
 import com.tsystems.banking.repository.AccountRepository;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,12 +26,38 @@ public class AccountServiceImplementation implements AccountService {
   }
 
   @Override
-  public Optional<Account> findById(Long accountId) {
-    return accountRepository.findById(accountId);
+  public Account findById(Long accountId) {
+    return accountRepository
+      .findById(accountId)
+      .orElseThrow(
+        () ->
+          new ApiException(
+            NOT_FOUND,
+            String.format(
+              "Account with account number {%d} not found",
+              accountId
+            )
+          )
+      );
   }
 
   @Override
   public Account updateAccount(Account account) {
-    return accountRepository.save(account);
+    if (existsById(account.getId())) {
+      return accountRepository.save(account);
+    }
+
+    throw new ApiException(
+      NOT_FOUND,
+      String.format(
+        "Account with account number {%d} not found",
+        account.getId()
+      )
+    );
+  }
+
+  @Override
+  public Boolean existsById(Long accountId) {
+    return accountRepository.existsById(accountId);
   }
 }

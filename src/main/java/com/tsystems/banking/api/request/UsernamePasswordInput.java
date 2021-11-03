@@ -1,10 +1,17 @@
 package com.tsystems.banking.api.request;
 
-public class UsernamePasswordAuthRequest {
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Length;
+
+public class UsernamePasswordInput {
+  @NotNull(message = "Username is required")
   private String username;
+
+  @NotNull(message = "Password is required")
+  @Length(min = 5, message = "Password must be at least 5 characters long")
   private String password;
 
-  public UsernamePasswordAuthRequest() {}
+  public UsernamePasswordInput() {}
 
   /**
    * @return the username

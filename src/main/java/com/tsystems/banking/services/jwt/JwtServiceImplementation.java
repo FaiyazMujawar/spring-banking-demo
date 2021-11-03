@@ -1,20 +1,22 @@
 package com.tsystems.banking.services.jwt;
 
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator.Builder;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.tsystems.banking.exceptions.ApiException;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class JwtServiceImplementation implements JwtService {
-  @Value("${jwt.secret}")
-  private String JWT_SECRET;
-
   private final Algorithm algorithm;
   private final String JWT_PREFIX = "Bearer ";
 
@@ -30,19 +32,17 @@ public class JwtServiceImplementation implements JwtService {
     Object subject,
     String issuer,
     Optional<Map<String, Object>> claims,
-    Optional<Integer> expirationTimeInHrs
+    Optional<Long> expirationTimeInMillis
   ) {
     Builder builder = JWT
       .create()
       .withSubject(subject.toString())
+      .withIssuedAt(new Date(System.currentTimeMillis()))
       .withIssuer(issuer);
 
-    if (expirationTimeInHrs.isPresent()) {
+    if (expirationTimeInMillis.isPresent()) {
       builder.withExpiresAt(
-        new Date(
-          System.currentTimeMillis() +
-          (expirationTimeInHrs.get() * 60 * 60 * 1000)
-        )
+        new Date(System.currentTimeMillis() + expirationTimeInMillis.get())
       );
     }
 
@@ -50,20 +50,30 @@ public class JwtServiceImplementation implements JwtService {
       builder.withPayload(claims.get());
     }
 
-    return builder.sign(algorithm);
+    try {
+      return builder.sign(algorithm);
+    } catch (JWTCreationException e) {
+      throw new ApiException(INTERNAL_SERVER_ERROR, e.getMessage());
+    }
   }
 
   @Override
   public DecodedJWT verifyToken(String authorizationHeader) throws Exception {
-    if (
-      authorizationHeader == null || !authorizationHeader.startsWith(JWT_PREFIX)
-    ) {
-      throw new Exception("JWT malformed");
+    if (authorizationHeader == null) {
+      throw new ApiException(FORBIDDEN, "Access token is required");
     }
 
-    return JWT
-      .require(algorithm)
-      .build()
-      .verify(authorizationHeader.substring(JWT_PREFIX.length()));
+    if (!authorizationHeader.startsWith(JWT_PREFIX)) {
+      throw new ApiException(FORBIDDEN, "Access token is malformed");
+    }
+
+    try {
+      return JWT
+        .require(algorithm)
+        .build()
+        .verify(authorizationHeader.substring(JWT_PREFIX.length()));
+    } catch (JWTVerificationException e) {
+      throw new ApiException(FORBIDDEN, e.getMessage());
+    }
   }
 }

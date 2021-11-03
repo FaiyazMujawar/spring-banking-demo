@@ -9,7 +9,7 @@ public interface JwtService {
     Object subject,
     String issuer,
     Optional<Map<String, Object>> claims,
-    Optional<Integer> expirationTimeInHrs
+    Optional<Long> expirationTimeInMillis
   );
 
   DecodedJWT verifyToken(String authorizationHeader) throws Exception;

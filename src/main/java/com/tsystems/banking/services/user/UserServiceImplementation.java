@@ -1,10 +1,12 @@
 package com.tsystems.banking.services.user;
 
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+
+import com.tsystems.banking.exceptions.ApiException;
 import com.tsystems.banking.models.User;
 import com.tsystems.banking.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,13 +28,29 @@ public class UserServiceImplementation
   }
 
   @Override
-  public Optional<User> findById(Long userId) {
-    return userRepo.findById(userId);
+  public User findById(Long userId) {
+    return userRepo
+      .findById(userId)
+      .orElseThrow(
+        () ->
+          new ApiException(
+            NOT_FOUND,
+            String.format("User with id {%d} not found", userId)
+          )
+      );
   }
 
   @Override
-  public Optional<User> findByUsername(String username) {
-    return userRepo.findByUsername(username);
+  public User findByUsername(String username) {
+    return userRepo
+      .findByUsername(username)
+      .orElseThrow(
+        () ->
+          new ApiException(
+            NOT_FOUND,
+            String.format("User with username {%s} not found", username)
+          )
+      );
   }
 
   @Override
@@ -43,13 +61,14 @@ public class UserServiceImplementation
   @Override
   public UserDetails loadUserByUsername(String username)
     throws UsernameNotFoundException {
-    Optional<User> optionalUser = userRepo.findByUsername(username);
-    if (optionalUser.isEmpty()) {
-      throw new UsernameNotFoundException(
-        String.format("User with username %s not found", username)
+    User user = userRepo
+      .findByUsername(username)
+      .orElseThrow(
+        () ->
+          new UsernameNotFoundException(
+            String.format("User with username {%s} not found", username)
+          )
       );
-    }
-    User user = optionalUser.get();
 
     Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
@@ -58,5 +77,10 @@ public class UserServiceImplementation
       user.getPassword(),
       authorities
     );
+  }
+
+  @Override
+  public Boolean existsByEmail(String email) {
+    return userRepo.existsByEmail(email);
   }
 }

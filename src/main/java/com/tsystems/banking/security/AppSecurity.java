@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -24,22 +25,27 @@ public class AppSecurity extends WebSecurityConfigurerAdapter {
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final JwtService jwtService;
   private final AppConfig appConfig;
+  private final AuthenticationFailureHandler authenticationFailureHandler;
 
   /**
    * @param userDetailsService
    * @param bCryptPasswordEncoder
    * @param jwtService
+   * @param appConfig
+   * @param appConfig
    */
   public AppSecurity(
     UserDetailsService userDetailsService,
     BCryptPasswordEncoder bCryptPasswordEncoder,
     JwtService jwtService,
-    AppConfig appConfig
+    AppConfig appConfig,
+    AuthenticationFailureHandler handler
   ) {
     this.userDetailsService = userDetailsService;
     this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     this.jwtService = jwtService;
     this.appConfig = appConfig;
+    this.authenticationFailureHandler = handler;
   }
 
   @Override
@@ -68,6 +74,9 @@ public class AppSecurity extends WebSecurityConfigurerAdapter {
       .authorizeRequests()
       .anyRequest()
       .authenticated()
+      .and()
+      .formLogin()
+      .failureHandler(this.authenticationFailureHandler)
       .and()
       .addFilter(
         new JwtAuthFilter(super.authenticationManager(), jwtService, appConfig)

@@ -40,9 +40,7 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
     String endpoint = request.getServletPath();
 
     // If endpoint is open, do nothing, pass to next filter in chain
-    if (
-      endpoint.startsWith("/api/auth") || endpoint.startsWith("/api/health")
-    ) {
+    if (endpoint.matches("/api/auth/.*|/login|/api/health")) {
       filterChain.doFilter(request, response);
     } else {
       String authorizationHeader = request.getHeader(AUTHORIZATION);

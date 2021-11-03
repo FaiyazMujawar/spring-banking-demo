@@ -1,15 +1,22 @@
 package com.tsystems.banking.controllers;
 
 import static com.tsystems.banking.misc.Utils.getAuthenticatedUser;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.tsystems.banking.api.request.GetBalanceInput;
 import com.tsystems.banking.api.request.UpdateBalanceInput;
+import com.tsystems.banking.api.response.SuccessfulResponse;
+import com.tsystems.banking.exceptions.ApiException;
 import com.tsystems.banking.models.Account;
 import com.tsystems.banking.models.User;
 import com.tsystems.banking.services.account.AccountService;
 import com.tsystems.banking.services.user.UserService;
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,111 +42,122 @@ public class AccountController {
   }
 
   @GetMapping(path = "/balance")
-  public ResponseEntity<?> getAccountBalance(
-    @RequestBody GetBalanceInput getBalanceInput
+  public ResponseEntity<SuccessfulResponse> getAccountBalance(
+    @RequestBody @Valid GetBalanceInput getBalanceInput,
+    HttpServletResponse response
   )
-    throws Exception {
+    throws ApiException {
     Long accountId = getBalanceInput.getAccountId();
-    Account account = accountService
-      .findById(accountId)
-      .orElseThrow(
-        () ->
-          new Exception(
-            String.format("Account with account number %d not found", accountId)
-          )
-      );
+    Account account = accountService.findById(accountId);
 
     String username = (String) getAuthenticatedUser().getPrincipal();
 
-    User user = userService
-      .findByUsername(username)
-      .orElseThrow(() -> new Exception("User not found"));
+    User user = null;
+    try {
+      user = userService.findByUsername(username);
+    } catch (ApiException e) {
+      throw new ApiException(UNAUTHORIZED, "User not found");
+    }
 
     if (!user.getId().equals(account.getUserId())) {
-      throw new Exception("Unauthorized");
+      throw new ApiException(
+        UNAUTHORIZED,
+        "Users can access only their own accounts"
+      );
     }
 
     Map<String, Double> balance = new HashMap<>();
     balance.put("balance", account.getBalance());
 
-    return ResponseEntity.ok().body(balance);
+    response.setContentType(APPLICATION_JSON_VALUE);
+    return ResponseEntity.ok().body(new SuccessfulResponse(balance));
   }
 
   @PostMapping(path = "/deposit")
-  public ResponseEntity<?> depositAmount(
-    @RequestBody UpdateBalanceInput depositAmountInput
+  public ResponseEntity<SuccessfulResponse> depositAmount(
+    @RequestBody @Valid UpdateBalanceInput depositAmountInput,
+    HttpServletResponse response
   )
     throws Exception {
     Long accountId = depositAmountInput.getAccountId();
-    Account account = accountService
-      .findById(accountId)
-      .orElseThrow(
-        () ->
-          new Exception(
-            String.format("Account with account number %d not found", accountId)
-          )
-      );
+    Account account = accountService.findById(accountId);
 
     String username = (String) getAuthenticatedUser().getPrincipal();
 
-    User user = userService
-      .findByUsername(username)
-      .orElseThrow(() -> new Exception("User not found"));
+    User user = null;
+    try {
+      user = userService.findByUsername(username);
+    } catch (ApiException e) {
+      throw new ApiException(UNAUTHORIZED, "User not found");
+    }
 
     if (!user.getId().equals(account.getUserId())) {
-      throw new Exception("Unauthorized");
+      throw new ApiException(
+        UNAUTHORIZED,
+        "Users can access only their own accounts"
+      );
+    }
+
+    if (depositAmountInput.getAmount() <= 0) {
+      throw new ApiException(BAD_REQUEST, "Amount must be greater than 0");
     }
 
     account.setBalance(account.getBalance() + depositAmountInput.getAmount());
 
     accountService.updateAccount(account);
 
-    Map<String, String> message = new HashMap<>();
-    message.put("message", "Amount deposited");
-
-    return ResponseEntity.ok().body(message);
+    response.setContentType(APPLICATION_JSON_VALUE);
+    return ResponseEntity
+      .ok()
+      .body(
+        new SuccessfulResponse(
+          String.format("Amount {%d} deposited", depositAmountInput.getAmount())
+        )
+      );
   }
 
   @PostMapping(path = "/withdraw")
-  public ResponseEntity<?> withdrawAmount(
-    @RequestBody UpdateBalanceInput withdrawAmountInput
+  public ResponseEntity<SuccessfulResponse> withdrawAmount(
+    @RequestBody @Valid UpdateBalanceInput withdrawAmountInput,
+    HttpServletResponse response
   )
     throws Exception {
     Long accountId = withdrawAmountInput.getAccountId();
     Double amount = withdrawAmountInput.getAmount();
 
-    if (amount <= 1) {
-      throw new Exception("Amount should be greater than 0");
+    if (amount <= 0) {
+      throw new ApiException(BAD_REQUEST, "Amount must be greater than 0");
     }
 
-    Account account = accountService
-      .findById(accountId)
-      .orElseThrow(
-        () ->
-          new Exception(
-            String.format("Account with account number %s not found", accountId)
-          )
-      );
-
-    if (account.getBalance() < amount) {
-      throw new Exception("Insufficient balance");
-    }
+    Account account = accountService.findById(accountId);
 
     String username = (String) getAuthenticatedUser().getPrincipal();
-    User user = userService
-      .findByUsername(username)
-      .orElseThrow(() -> new Exception("User not found"));
+    User user = null;
+    try {
+      user = userService.findByUsername(username);
+    } catch (ApiException e) {
+      throw new ApiException(UNAUTHORIZED, "User not found");
+    }
 
     if (!user.getId().equals(account.getUserId())) {
-      throw new Exception("Unauthorized");
+      throw new ApiException(
+        UNAUTHORIZED,
+        "Users can access only their own accounts"
+      );
+    }
+
+    if (account.getBalance() < amount) {
+      throw new ApiException(BAD_REQUEST, "Insufficient balance");
     }
 
     account.setBalance(account.getBalance() - amount);
     accountService.updateAccount(account);
 
-    Map<String, String> message = new HashMap<>();
-    message.put("message", "Amount withdrawn");
-
-    return ResponseEntity.ok().body(message);
+    response.setContentType(APPLICATION_JSON_VALUE);
+    return ResponseEntity
+      .ok()
+      .body(
+        new SuccessfulResponse(String.format("Amount {%d} withdrawn", amount))
+      );
   }
 }

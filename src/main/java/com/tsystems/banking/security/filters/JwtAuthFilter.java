@@ -1,7 +1,7 @@
 package com.tsystems.banking.security.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tsystems.banking.api.request.UsernamePasswordAuthRequest;
+import com.tsystems.banking.api.request.UsernamePasswordInput;
 import com.tsystems.banking.api.response.LoginResponse;
 import com.tsystems.banking.config.AppConfig;
 import com.tsystems.banking.services.jwt.JwtService;
@@ -11,7 +11,6 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,9 +19,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
-  @Value("${jwt.expiration}")
-  private int JWT_EXPIRATION_TIME_IN_HRS;
-
   private final AuthenticationManager authenticationManager;
   private final JwtService jwtService;
   private final AppConfig appConfig;
@@ -53,8 +49,8 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
     try {
       // Extracting username/password from request to
       // UsernamePasswordAuthRequest class
-      UsernamePasswordAuthRequest authRequest = new ObjectMapper()
-      .readValue(request.getInputStream(), UsernamePasswordAuthRequest.class);
+      UsernamePasswordInput authRequest = new ObjectMapper()
+      .readValue(request.getInputStream(), UsernamePasswordInput.class);
 
       // Creating authentication token from username/password
       UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -78,10 +74,10 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
     Authentication authResult
   )
     throws IOException, ServletException {
-    // User class from springframework, not custom defined
+    // User class from spring framework, not custom defined
     User user = (User) authResult.getPrincipal();
 
-    int expirationTimeInHrs = appConfig.getJwtExpirationTimeInHrs();
+    Long expirationTimeInHrs = appConfig.getJwtExpirationTimeInMillis();
     String accessToken = jwtService.signToken(
       user.getUsername(),
       request.getLocalName(),

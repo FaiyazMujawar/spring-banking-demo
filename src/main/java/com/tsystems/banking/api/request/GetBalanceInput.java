@@ -1,6 +1,9 @@
 package com.tsystems.banking.api.request;
 
+import javax.validation.constraints.NotNull;
+
 public class GetBalanceInput {
+  @NotNull(message = "Account number is required")
   private Long accountId;
 
   public GetBalanceInput() {}

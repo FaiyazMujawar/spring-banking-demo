@@ -1,12 +1,14 @@
 package com.tsystems.banking.services.user;
 
+import com.tsystems.banking.exceptions.ApiException;
 import com.tsystems.banking.models.User;
-import java.util.Optional;
 
 public interface UserService {
-  Optional<User> findById(Long userId);
+  User findById(Long userId) throws ApiException;
 
-  Optional<User> findByUsername(String username);
+  User findByUsername(String username) throws ApiException;
 
   User createUser(User user);
+
+  Boolean existsByEmail(String email);
 }

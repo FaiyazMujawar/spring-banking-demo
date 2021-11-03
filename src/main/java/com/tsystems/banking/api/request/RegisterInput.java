@@ -1,13 +1,34 @@
 package com.tsystems.banking.api.request;
 
-public class RegisterRequest {
+import javax.validation.constraints.Email;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.Range;
+
+public class RegisterInput {
+  @NotNull(message = "First name is required")
   private String firstName;
+
+  @NotNull(message = "Last name is required")
   private String lastName;
+
+  @NotNull(message = "email is required")
+  @Email(message = "Please provide a valid email")
   private String email;
+
+  @NotNull(message = "Password is required")
+  @Min(value = 5, message = "Password must be at least 5 characters long")
   private String password;
+
+  @NotNull(message = "Contact is required")
+  @Range(
+    min = 1000000000,
+    max = 9999999999L,
+    message = "Contact must be 10 digits long"
+  )
   private Long contact;
 
-  public RegisterRequest() {}
+  public RegisterInput() {}
 
   /**
    * @return the firstName
