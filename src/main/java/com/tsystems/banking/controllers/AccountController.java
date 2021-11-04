@@ -1,6 +1,9 @@
 package com.tsystems.banking.controllers;
 
+import static com.tsystems.banking.misc.Utils.getAmountDepositMail;
+import static com.tsystems.banking.misc.Utils.getAmountWithdrawMail;
 import static com.tsystems.banking.misc.Utils.getAuthenticatedUser;
+import static com.tsystems.banking.misc.Utils.getDoubleWithPrecision;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -12,6 +15,7 @@ import com.tsystems.banking.exceptions.ApiException;
 import com.tsystems.banking.models.Account;
 import com.tsystems.banking.models.User;
 import com.tsystems.banking.services.account.AccountService;
+import com.tsystems.banking.services.mail.MailService;
 import com.tsystems.banking.services.user.UserService;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,16 +33,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class AccountController {
   private final AccountService accountService;
   private final UserService userService;
+  private final MailService mailService;
 
   /**
    * @param accountService
+   * @param userService
+   * @param mailService
    */
   public AccountController(
     AccountService accountService,
-    UserService userService
+    UserService userService,
+    MailService mailService
   ) {
     this.accountService = accountService;
     this.userService = userService;
+    this.mailService = mailService;
   }
 
   @GetMapping(path = "/balance")
@@ -106,12 +115,27 @@ public class AccountController {
 
     accountService.updateAccount(account);
 
+    String mailBody = getAmountDepositMail(
+      user.getFirstName(),
+      accountId,
+      depositAmountInput.getAmount()
+    );
+
+    mailService.sendHtmlMail(
+      user.getEmail(),
+      "Account activity update",
+      mailBody
+    );
+
     response.setContentType(APPLICATION_JSON_VALUE);
     return ResponseEntity
       .ok()
       .body(
         new SuccessfulResponse(
-          String.format("Amount {%d} deposited", depositAmountInput.getAmount())
+          String.format(
+            "Amount {%s} deposited",
+            getDoubleWithPrecision(depositAmountInput.getAmount(), 2)
+          )
         )
       );
   }
@@ -153,11 +177,28 @@ public class AccountController {
     account.setBalance(account.getBalance() - amount);
     accountService.updateAccount(account);
 
+    String mailBody = getAmountWithdrawMail(
+      user.getFirstName(),
+      accountId,
+      amount
+    );
+
+    mailService.sendHtmlMail(
+      user.getEmail(),
+      "Account activity update",
+      mailBody
+    );
+
     response.setContentType(APPLICATION_JSON_VALUE);
     return ResponseEntity
       .ok()
       .body(
-        new SuccessfulResponse(String.format("Amount {%d} withdrawn", amount))
+        new SuccessfulResponse(
+          String.format(
+            "Amount {%s} withdrawn",
+            getDoubleWithPrecision(amount, 2)
+          )
+        )
       );
   }
 }

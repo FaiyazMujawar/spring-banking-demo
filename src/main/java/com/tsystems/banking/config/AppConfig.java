@@ -13,6 +13,9 @@ public class AppConfig {
   @Value("${jwt.expiration}")
   private String JWT_EXPIRATION_TIME;
 
+  @Value("${spring.mail.username}")
+  private String MAILER_ADDRESS;
+
   public String getJwtSecret() {
     return JWT_SECRET;
   }
@@ -39,5 +42,9 @@ public class AppConfig {
     }
 
     return time * 1000;
+  }
+
+  public String getMailerEmail() {
+    return MAILER_ADDRESS;
   }
 }

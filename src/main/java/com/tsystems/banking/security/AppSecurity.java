@@ -9,6 +9,7 @@ import com.tsystems.banking.security.filters.JwtAuthFilter;
 import com.tsystems.banking.security.filters.JwtVerificationFilter;
 import com.tsystems.banking.services.jwt.JwtService;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -19,6 +20,7 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableAsync
 @EnableWebSecurity
 public class AppSecurity extends WebSecurityConfigurerAdapter {
   private final UserDetailsService userDetailsService;

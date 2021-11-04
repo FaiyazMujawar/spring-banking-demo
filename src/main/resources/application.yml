@@ -8,6 +8,19 @@ spring:
     username: faiyaz
     password: root
 
+  mail:
+    port: 587
+    host: smtp.mail.yahoo.com
+    username: spring.mailing@yahoo.com
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  
+
   # JPA
   jpa:
     hibernate:

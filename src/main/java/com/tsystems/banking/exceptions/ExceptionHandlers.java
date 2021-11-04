@@ -62,6 +62,7 @@ public class ExceptionHandlers {
     Exception exception,
     HttpServletResponse response
   ) {
+    exception.printStackTrace();
     response.setContentType(APPLICATION_JSON);
 
     return ResponseEntity
