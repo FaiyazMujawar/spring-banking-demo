@@ -35,5 +35,11 @@ jwt:
   # Jwt access token expiration time, specified in string
   # Eg - 2mi ~ 2 minutes, 2h ~ 2 hours, 2d ~ 2 days, 2mo ~ 2months, 2y ~ 2years
   # If no suffix is provided, the number is considered to be number of seconds 
-  expiration: "1mo"
+  expiration: 1mo
   secret: 'd0a011bfaa39c393dc5ab7e325b795c6540ccd31646337c9e3ae7653d992bbfd77d9b4fb71acc0dd295ec74269'
+
+account:
+  minimum_balance: 2000
+
+scheduling:
+  check_minimum_balance_cron: '30 12 */10 * * ?'

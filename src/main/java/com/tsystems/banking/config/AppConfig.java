@@ -16,6 +16,9 @@ public class AppConfig {
   @Value("${spring.mail.username}")
   private String MAILER_ADDRESS;
 
+  @Value("${account.minimum_balance}")
+  private Double MINIMUM_ACCOUNT_BALANCE;
+
   public String getJwtSecret() {
     return JWT_SECRET;
   }
@@ -46,5 +49,9 @@ public class AppConfig {
 
   public String getMailerEmail() {
     return MAILER_ADDRESS;
+  }
+
+  public Double getMinimumAccountBalance() {
+    return MINIMUM_ACCOUNT_BALANCE;
   }
 }

@@ -5,6 +5,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import com.tsystems.banking.exceptions.ApiException;
 import com.tsystems.banking.models.Account;
 import com.tsystems.banking.repository.AccountRepository;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -59,5 +60,10 @@ public class AccountServiceImplementation implements AccountService {
   @Override
   public Boolean existsById(Long accountId) {
     return accountRepository.existsById(accountId);
+  }
+
+  @Override
+  public List<Account> findAllWithMinimumBalance(Double minimumBalance) {
+    return accountRepository.findByBalanceLessThan(minimumBalance);
   }
 }

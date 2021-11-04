@@ -7,6 +7,7 @@ import com.tsystems.banking.models.User;
 import com.tsystems.banking.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,19 +18,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserServiceImplementation
   implements UserService, UserDetailsService {
-  private final UserRepository userRepo;
+  private final UserRepository userRepository;
 
   /**
-   * @param userRepo
+   * @param userRepository
    */
   @Autowired
-  public UserServiceImplementation(UserRepository userRepo) {
-    this.userRepo = userRepo;
+  public UserServiceImplementation(UserRepository userRepository) {
+    this.userRepository = userRepository;
   }
 
   @Override
   public User findById(Long userId) {
-    return userRepo
+    return userRepository
       .findById(userId)
       .orElseThrow(
         () ->
@@ -42,7 +43,7 @@ public class UserServiceImplementation
 
   @Override
   public User findByUsername(String username) {
-    return userRepo
+    return userRepository
       .findByUsername(username)
       .orElseThrow(
         () ->
@@ -55,13 +56,23 @@ public class UserServiceImplementation
 
   @Override
   public User createUser(User user) {
-    return userRepo.save(user);
+    return userRepository.save(user);
+  }
+
+  @Override
+  public Boolean existsByEmail(String email) {
+    return userRepository.existsByEmail(email);
+  }
+
+  @Override
+  public List<User> findAllById(List<Long> ids) {
+    return userRepository.findAllById(ids);
   }
 
   @Override
   public UserDetails loadUserByUsername(String username)
     throws UsernameNotFoundException {
-    User user = userRepo
+    User user = userRepository
       .findByUsername(username)
       .orElseThrow(
         () ->
@@ -77,10 +88,5 @@ public class UserServiceImplementation
       user.getPassword(),
       authorities
     );
-  }
-
-  @Override
-  public Boolean existsByEmail(String email) {
-    return userRepo.existsByEmail(email);
   }
 }
