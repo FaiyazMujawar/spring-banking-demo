@@ -12,6 +12,7 @@ import com.tsystems.banking.api.request.GetBalanceInput;
 import com.tsystems.banking.api.request.UpdateBalanceInput;
 import com.tsystems.banking.api.response.SuccessfulResponse;
 import com.tsystems.banking.exceptions.ApiException;
+import com.tsystems.banking.misc.Constants;
 import com.tsystems.banking.models.Account;
 import com.tsystems.banking.models.User;
 import com.tsystems.banking.services.account.AccountService;
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,6 +42,7 @@ public class AccountController {
    * @param userService
    * @param mailService
    */
+  @Autowired
   public AccountController(
     AccountService accountService,
     UserService userService,
@@ -64,14 +67,14 @@ public class AccountController {
     User user = null;
     try {
       user = userService.findByUsername(username);
-    } catch (ApiException e) {
-      throw new ApiException(UNAUTHORIZED, "User not found");
+    } catch (Exception e) {
+      throw new ApiException(UNAUTHORIZED, Constants.USER_NOT_FOUND_ERROR);
     }
 
     if (!user.getId().equals(account.getUserId())) {
       throw new ApiException(
         UNAUTHORIZED,
-        "Users can access only their own accounts"
+        Constants.UNAUTHORIZED_ACCOUNT_ACCESS_ERROR
       );
     }
 
@@ -97,18 +100,18 @@ public class AccountController {
     try {
       user = userService.findByUsername(username);
     } catch (ApiException e) {
-      throw new ApiException(UNAUTHORIZED, "User not found");
+      throw new ApiException(UNAUTHORIZED, Constants.USER_NOT_FOUND_ERROR);
     }
 
     if (!user.getId().equals(account.getUserId())) {
       throw new ApiException(
         UNAUTHORIZED,
-        "Users can access only their own accounts"
+        Constants.UNAUTHORIZED_ACCOUNT_ACCESS_ERROR
       );
     }
 
     if (depositAmountInput.getAmount() <= 0) {
-      throw new ApiException(BAD_REQUEST, "Amount must be greater than 0");
+      throw new ApiException(BAD_REQUEST, Constants.INVALID_AMOUNT_ERROR);
     }
 
     account.setBalance(account.getBalance() + depositAmountInput.getAmount());
@@ -123,7 +126,7 @@ public class AccountController {
 
     mailService.sendHtmlMail(
       user.getEmail(),
-      "Account activity update",
+      Constants.ACCOUNT_ACTIVITY_SUBJECT,
       mailBody
     );
 
@@ -133,7 +136,7 @@ public class AccountController {
       .body(
         new SuccessfulResponse(
           String.format(
-            "Amount {%s} deposited",
+            Constants.AMOUNT_DEPOSITED_MESSAGE,
             getDoubleWithPrecision(depositAmountInput.getAmount(), 2)
           )
         )
@@ -150,7 +153,7 @@ public class AccountController {
     Double amount = withdrawAmountInput.getAmount();
 
     if (amount <= 0) {
-      throw new ApiException(BAD_REQUEST, "Amount must be greater than 0");
+      throw new ApiException(BAD_REQUEST, Constants.INVALID_AMOUNT_ERROR);
     }
 
     Account account = accountService.findById(accountId);
@@ -160,18 +163,18 @@ public class AccountController {
     try {
       user = userService.findByUsername(username);
     } catch (ApiException e) {
-      throw new ApiException(UNAUTHORIZED, "User not found");
+      throw new ApiException(UNAUTHORIZED, Constants.USER_NOT_FOUND_ERROR);
     }
 
     if (!user.getId().equals(account.getUserId())) {
       throw new ApiException(
         UNAUTHORIZED,
-        "Users can access only their own accounts"
+        Constants.UNAUTHORIZED_ACCOUNT_ACCESS_ERROR
       );
     }
 
     if (account.getBalance() < amount) {
-      throw new ApiException(BAD_REQUEST, "Insufficient balance");
+      throw new ApiException(BAD_REQUEST, Constants.INSUFFICIENT_BALANCE_ERROR);
     }
 
     account.setBalance(account.getBalance() - amount);
@@ -185,7 +188,7 @@ public class AccountController {
 
     mailService.sendHtmlMail(
       user.getEmail(),
-      "Account activity update",
+      Constants.ACCOUNT_ACTIVITY_SUBJECT,
       mailBody
     );
 
@@ -195,7 +198,7 @@ public class AccountController {
       .body(
         new SuccessfulResponse(
           String.format(
-            "Amount {%s} withdrawn",
+            Constants.AMOUNT_WITHDRAWN_MESSAGE,
             getDoubleWithPrecision(amount, 2)
           )
         )

@@ -3,6 +3,7 @@ package com.tsystems.banking.services.account;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 import com.tsystems.banking.exceptions.ApiException;
+import com.tsystems.banking.misc.Constants;
 import com.tsystems.banking.models.Account;
 import com.tsystems.banking.repository.AccountRepository;
 import java.util.List;
@@ -34,10 +35,7 @@ public class AccountServiceImplementation implements AccountService {
         () ->
           new ApiException(
             NOT_FOUND,
-            String.format(
-              "Account with account number {%d} not found",
-              accountId
-            )
+            String.format(Constants.ACCOUNT_NOT_FOUND_ERROR, accountId)
           )
       );
   }
@@ -50,10 +48,7 @@ public class AccountServiceImplementation implements AccountService {
 
     throw new ApiException(
       NOT_FOUND,
-      String.format(
-        "Account with account number {%d} not found",
-        account.getId()
-      )
+      String.format(Constants.ACCOUNT_NOT_FOUND_ERROR, account.getId())
     );
   }
 

@@ -3,8 +3,8 @@ package com.tsystems.banking.api.response;
 import java.util.Date;
 
 public class SuccessfulResponse {
-  private final String result;
   private final Date timestamp;
+  private final String result;
   private final Object response;
 
   /**

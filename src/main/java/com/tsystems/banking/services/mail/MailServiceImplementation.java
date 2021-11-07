@@ -6,6 +6,7 @@ import com.tsystems.banking.config.AppConfig;
 import com.tsystems.banking.exceptions.ApiException;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -20,6 +21,7 @@ public class MailServiceImplementation implements MailService {
    * @param mailSender
    * @param appConfig
    */
+  @Autowired
   public MailServiceImplementation(
     JavaMailSender mailSender,
     AppConfig appConfig

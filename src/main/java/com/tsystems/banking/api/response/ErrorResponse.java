@@ -1,11 +1,11 @@
 package com.tsystems.banking.api.response;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 public class ErrorResponse {
+  private final String timestamp;
   private final String result;
   private final String code;
-  private final Date timestamp;
   private final Object error;
 
   /**
@@ -18,7 +18,7 @@ public class ErrorResponse {
   /**
    * @return the timestamp
    */
-  public Date getTimestamp() {
+  public String getTimestamp() {
     return timestamp;
   }
 
@@ -45,6 +45,6 @@ public class ErrorResponse {
     this.result = "FAILURE";
     this.code = code.toUpperCase().replaceAll(" ", "_");
     this.error = error;
-    this.timestamp = new Date();
+    this.timestamp = ZonedDateTime.now().toString();
   }
 }

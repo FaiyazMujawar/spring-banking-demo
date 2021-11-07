@@ -1,10 +1,12 @@
 package com.tsystems.banking.security.filters;
 
+import static com.tsystems.banking.misc.Utils.getTokenFromAuthHeader;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tsystems.banking.api.response.ErrorResponse;
 import com.tsystems.banking.services.jwt.JwtService;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,7 +23,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 public class JwtVerificationFilter extends OncePerRequestFilter {
   private final JwtService jwtService;
-  private String APPLICATION_JSON = "application/json";
 
   /**
    * @param jwtService
@@ -43,12 +44,12 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
     if (endpoint.matches("/api/auth/.*|/login|/api/health")) {
       filterChain.doFilter(request, response);
     } else {
-      String authorizationHeader = request.getHeader(AUTHORIZATION);
-
       try {
-        DecodedJWT token = jwtService.verifyToken(authorizationHeader);
+        String token = getTokenFromAuthHeader(request.getHeader(AUTHORIZATION));
 
-        String username = token.getSubject();
+        jwtService.verifyToken(token);
+
+        String username = jwtService.getSubjectFromToken(token);
         ArrayList<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
@@ -65,13 +66,18 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
         // Pass to next filter in chain
         filterChain.doFilter(request, response);
       } catch (Exception e) {
-        e.printStackTrace();
         response.setStatus(FORBIDDEN.value());
-        response.setContentType(APPLICATION_JSON);
-        Map<String, Object> errors = new HashMap<>();
+        response.setContentType(APPLICATION_JSON_VALUE);
 
-        errors.put("error", e.getMessage());
-        new ObjectMapper().writeValue(response.getOutputStream(), errors);
+        Map<String, Object> errors = new HashMap<>();
+        errors.put("message", e.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+          FORBIDDEN.getReasonPhrase(),
+          errors
+        );
+        new ObjectMapper()
+        .writeValue(response.getOutputStream(), errorResponse);
       }
     }
   }

@@ -1,7 +1,6 @@
-package com.tsystems.banking.misc;
+package com.tsystems.banking.config;
 
 import com.auth0.jwt.algorithms.Algorithm;
-import com.tsystems.banking.config.AppConfig;
 import com.tsystems.banking.exceptions.AuthExceptionHandler;
 import com.tsystems.banking.services.jwt.JwtService;
 import com.tsystems.banking.services.jwt.JwtServiceImplementation;

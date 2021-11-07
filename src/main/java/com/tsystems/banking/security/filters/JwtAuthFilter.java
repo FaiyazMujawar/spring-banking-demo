@@ -1,5 +1,7 @@
 package com.tsystems.banking.security.filters;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsystems.banking.api.request.UsernamePasswordInput;
 import com.tsystems.banking.api.response.LoginResponse;
@@ -22,7 +24,6 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
   private final AuthenticationManager authenticationManager;
   private final JwtService jwtService;
   private final AppConfig appConfig;
-  private final String APPLICATION_JSON = "application/json";
 
   /**
    * @param authenticationManager
@@ -77,12 +78,12 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
     // User class from spring framework, not custom defined
     User user = (User) authResult.getPrincipal();
 
-    Long expirationTimeInHrs = appConfig.getJwtExpirationTimeInMillis();
+    Long expirationTimeInMillis = appConfig.getJwtExpirationTimeInMillis();
     String accessToken = jwtService.signToken(
       user.getUsername(),
       request.getLocalName(),
       Optional.empty(),
-      Optional.of(expirationTimeInHrs)
+      Optional.of(expirationTimeInMillis)
     );
 
     String refreshToken = jwtService.signToken(
@@ -92,7 +93,7 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
       Optional.empty()
     );
 
-    response.setContentType(APPLICATION_JSON);
+    response.setContentType(APPLICATION_JSON_VALUE);
 
     new ObjectMapper()
     .writeValue(

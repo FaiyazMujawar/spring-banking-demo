@@ -1,7 +1,10 @@
-package com.tsystems.banking.controllers;
+package com.tsystems.banking.config;
 
-import com.tsystems.banking.config.AppConfig;
-import com.tsystems.banking.misc.Utils;
+import static com.tsystems.banking.misc.Utils.getLowBalanceAlertMail;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+
+import com.tsystems.banking.exceptions.ApiException;
+import com.tsystems.banking.misc.Constants;
 import com.tsystems.banking.models.Account;
 import com.tsystems.banking.models.User;
 import com.tsystems.banking.services.account.AccountService;
@@ -14,19 +17,16 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 @Configuration
 @EnableScheduling
-public class ScheduledJobs {
+public class SchedulerConfiguration {
   private final AppConfig appConfig;
   private final AccountService accountService;
   private final UserService userService;
   private final MailService mailService;
 
-  private final String MINIMUM_BALANCE_CHECK_CRON =
-    "${scheduling.check_minimum_balance_cron}";
-
   /**
    * @param appConfig
    */
-  public ScheduledJobs(
+  public SchedulerConfiguration(
     AppConfig appConfig,
     AccountService accountService,
     UserService userService,
@@ -38,7 +38,7 @@ public class ScheduledJobs {
     this.mailService = mailService;
   }
 
-  @Scheduled(cron = MINIMUM_BALANCE_CHECK_CRON)
+  @Scheduled(cron = Constants.MINIMUM_BALANCE_CHECK_CRON)
   public void checkMinimumBalance() {
     List<Account> minimumBalanceAccounts = accountService.findAllWithMinimumBalance(
       appConfig.getMinimumAccountBalance()
@@ -48,9 +48,14 @@ public class ScheduledJobs {
       .stream()
       .forEach(
         account -> {
-          User user = userService.findById(account.getUserId());
+          User user = null;
+          try {
+            user = userService.findById(account.getUserId());
+          } catch (Exception e) {
+            throw new ApiException(NOT_FOUND, Constants.USER_NOT_FOUND_ERROR);
+          }
 
-          String mailBody = Utils.getLowBalanceAlertMail(
+          String mailBody = getLowBalanceAlertMail(
             user.getFirstName(),
             account.getId(),
             appConfig.getMinimumAccountBalance()
@@ -58,7 +63,7 @@ public class ScheduledJobs {
 
           mailService.sendHtmlMail(
             user.getEmail(),
-            "Low balance alert",
+            Constants.LOW_BALANCE_SUBJECT,
             mailBody
           );
         }

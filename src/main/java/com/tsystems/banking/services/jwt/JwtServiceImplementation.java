@@ -1,30 +1,28 @@
 package com.tsystems.banking.services.jwt;
 
-import static org.springframework.http.HttpStatus.FORBIDDEN;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator.Builder;
+import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTCreationException;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.tsystems.banking.exceptions.ApiException;
+import com.auth0.jwt.interfaces.Claim;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class JwtServiceImplementation implements JwtService {
   private final Algorithm algorithm;
-  private final String JWT_PREFIX = "Bearer ";
+  private final JWTVerifier jwtVerifier;
 
   /**
    * @param algorithm
    */
+  @Autowired
   public JwtServiceImplementation(Algorithm algorithm) {
     this.algorithm = algorithm;
+    this.jwtVerifier = JWT.require(algorithm).build();
   }
 
   @Override
@@ -50,30 +48,21 @@ public class JwtServiceImplementation implements JwtService {
       builder.withPayload(claims.get());
     }
 
-    try {
-      return builder.sign(algorithm);
-    } catch (JWTCreationException e) {
-      throw new ApiException(INTERNAL_SERVER_ERROR, e.getMessage());
-    }
+    return builder.sign(algorithm);
   }
 
   @Override
-  public DecodedJWT verifyToken(String authorizationHeader) throws Exception {
-    if (authorizationHeader == null) {
-      throw new ApiException(FORBIDDEN, "Access token is required");
-    }
+  public Boolean verifyToken(String token) throws Exception {
+    return jwtVerifier.verify(token) != null;
+  }
 
-    if (!authorizationHeader.startsWith(JWT_PREFIX)) {
-      throw new ApiException(FORBIDDEN, "Access token is malformed");
-    }
+  @Override
+  public String getSubjectFromToken(String token) {
+    return jwtVerifier.verify(token).getSubject();
+  }
 
-    try {
-      return JWT
-        .require(algorithm)
-        .build()
-        .verify(authorizationHeader.substring(JWT_PREFIX.length()));
-    } catch (JWTVerificationException e) {
-      throw new ApiException(FORBIDDEN, e.getMessage());
-    }
+  @Override
+  public Map<String, Claim> getClaimsFromToken(String token) {
+    return jwtVerifier.verify(token).getClaims();
   }
 }

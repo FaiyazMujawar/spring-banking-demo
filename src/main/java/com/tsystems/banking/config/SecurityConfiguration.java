@@ -1,10 +1,9 @@
-package com.tsystems.banking.security;
+package com.tsystems.banking.config;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
-import com.tsystems.banking.config.AppConfig;
 import com.tsystems.banking.security.filters.JwtAuthFilter;
 import com.tsystems.banking.security.filters.JwtVerificationFilter;
 import com.tsystems.banking.services.jwt.JwtService;
@@ -20,7 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-public class AppSecurity extends WebSecurityConfigurerAdapter {
+public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
   private final UserDetailsService userDetailsService;
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final JwtService jwtService;
@@ -34,7 +33,7 @@ public class AppSecurity extends WebSecurityConfigurerAdapter {
    * @param appConfig
    * @param appConfig
    */
-  public AppSecurity(
+  public SecurityConfiguration(
     UserDetailsService userDetailsService,
     BCryptPasswordEncoder bCryptPasswordEncoder,
     JwtService jwtService,
@@ -66,12 +65,8 @@ public class AppSecurity extends WebSecurityConfigurerAdapter {
       .authorizeRequests()
       .antMatchers(POST, "/api/auth/**")
       .permitAll()
-      .and()
-      .authorizeRequests()
       .antMatchers(GET, "/api/health")
       .permitAll()
-      .and()
-      .authorizeRequests()
       .anyRequest()
       .authenticated()
       .and()

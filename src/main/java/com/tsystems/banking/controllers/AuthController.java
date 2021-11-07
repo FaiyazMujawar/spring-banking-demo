@@ -2,13 +2,15 @@ package com.tsystems.banking.controllers;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.tsystems.banking.api.request.RegisterInput;
 import com.tsystems.banking.api.response.SuccessfulResponse;
 import com.tsystems.banking.config.AppConfig;
 import com.tsystems.banking.exceptions.ApiException;
+import com.tsystems.banking.misc.Constants;
+import com.tsystems.banking.misc.Utils;
 import com.tsystems.banking.models.Account;
 import com.tsystems.banking.models.User;
 import com.tsystems.banking.services.account.AccountService;
@@ -21,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -69,7 +72,7 @@ public class AuthController {
       registerInput.getEmail().split("@")[0] + (int) (Math.random() * 100);
 
     if (userService.existsByEmail(registerInput.getEmail())) {
-      throw new ApiException(BAD_REQUEST, "Email already in use");
+      throw new ApiException(BAD_REQUEST, Constants.EMAIL_IN_USE_ERROR);
     }
 
     // Create a new user
@@ -115,22 +118,33 @@ public class AuthController {
     HttpServletResponse response
   )
     throws Exception {
-    String authorizationHeader = request.getHeader(AUTHORIZATION);
+    String token = null;
 
-    DecodedJWT decodedJWT = jwtService.verifyToken(authorizationHeader);
-    String username = decodedJWT.getSubject();
+    try {
+      token = Utils.getTokenFromAuthHeader(request.getHeader(AUTHORIZATION));
 
-    String accessToken = jwtService.signToken(
-      username,
-      request.getLocalName(),
-      Optional.empty(),
-      Optional.of(appConfig.getJwtExpirationTimeInMillis())
-    );
+      jwtService.verifyToken(token);
+    } catch (Exception e) {
+      throw new ApiException(HttpStatus.FORBIDDEN, e.getLocalizedMessage());
+    }
 
-    Map<String, String> token = new HashMap<>();
-    token.put("accessToken", accessToken);
+    String username = jwtService.getSubjectFromToken(token);
 
-    response.setContentType(APPLICATION_JSON_VALUE);
-    return ResponseEntity.ok().body(new SuccessfulResponse(token));
+    try {
+      String accessToken = jwtService.signToken(
+        username,
+        request.getLocalName(),
+        Optional.empty(),
+        Optional.of(appConfig.getJwtExpirationTimeInMillis())
+      );
+
+      Map<String, String> tokens = new HashMap<>();
+      tokens.put("accessToken", accessToken);
+
+      response.setContentType(APPLICATION_JSON_VALUE);
+      return ResponseEntity.ok().body(new SuccessfulResponse(tokens));
+    } catch (Exception e) {
+      throw new ApiException(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+    }
   }
 }

@@ -1,8 +1,6 @@
 package com.tsystems.banking.services.user;
 
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-
-import com.tsystems.banking.exceptions.ApiException;
+import com.tsystems.banking.misc.Constants;
 import com.tsystems.banking.models.User;
 import com.tsystems.banking.repository.UserRepository;
 import java.util.ArrayList;
@@ -29,29 +27,17 @@ public class UserServiceImplementation
   }
 
   @Override
-  public User findById(Long userId) {
+  public User findById(Long userId) throws Exception {
     return userRepository
       .findById(userId)
-      .orElseThrow(
-        () ->
-          new ApiException(
-            NOT_FOUND,
-            String.format("User with id {%d} not found", userId)
-          )
-      );
+      .orElseThrow(() -> new Exception(Constants.USER_NOT_FOUND_ERROR));
   }
 
   @Override
-  public User findByUsername(String username) {
+  public User findByUsername(String username) throws Exception {
     return userRepository
       .findByUsername(username)
-      .orElseThrow(
-        () ->
-          new ApiException(
-            NOT_FOUND,
-            String.format("User with username {%s} not found", username)
-          )
-      );
+      .orElseThrow(() -> new Exception(Constants.USER_NOT_FOUND_ERROR));
   }
 
   @Override
@@ -75,10 +61,7 @@ public class UserServiceImplementation
     User user = userRepository
       .findByUsername(username)
       .orElseThrow(
-        () ->
-          new UsernameNotFoundException(
-            String.format("User with username {%s} not found", username)
-          )
+        () -> new UsernameNotFoundException(Constants.USER_NOT_FOUND_ERROR)
       );
 
     Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();

@@ -12,7 +12,7 @@ spring:
     port: 587
     host: smtp.mail.yahoo.com
     username: spring.mailing@yahoo.com
-    password:
+    password: bmrzgdzmniovyewi
     properties:
       mail:
         smtp:

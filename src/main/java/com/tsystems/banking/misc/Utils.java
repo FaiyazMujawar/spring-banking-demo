@@ -90,4 +90,17 @@ public class Utils {
 
     return new DecimalFormat(pattern).format(number);
   }
+
+  public static String getTokenFromAuthHeader(String authHeader)
+    throws Exception {
+    if (authHeader == null || authHeader.isBlank()) {
+      throw new Exception(Constants.ACCESS_TOKEN_REQUIRED_ERROR);
+    }
+
+    if (!authHeader.startsWith("Bearer ")) {
+      throw new Exception(Constants.AUTH_HEADER_MALFORMED_ERROR);
+    }
+
+    return authHeader.substring(Constants.TOKEN_PREFIX.length());
+  }
 }
