@@ -1,13 +1,17 @@
 package com.tsystems.banking.security.filters;
 
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsystems.banking.api.request.UsernamePasswordInput;
+import com.tsystems.banking.api.response.ErrorResponse;
 import com.tsystems.banking.api.response.LoginResponse;
 import com.tsystems.banking.config.AppConfig;
 import com.tsystems.banking.services.jwt.JwtService;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -99,6 +103,26 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
     .writeValue(
         response.getOutputStream(),
         new LoginResponse(accessToken, refreshToken)
+      );
+  }
+
+  @Override
+  protected void unsuccessfulAuthentication(
+    HttpServletRequest request,
+    HttpServletResponse response,
+    AuthenticationException failed
+  )
+    throws IOException, ServletException {
+    response.setStatus(FORBIDDEN.value());
+    response.setContentType(APPLICATION_JSON_VALUE);
+
+    Map<String, String> errors = new HashMap<>();
+    errors.put("message", failed.getLocalizedMessage());
+
+    new ObjectMapper()
+    .writeValue(
+        response.getOutputStream(),
+        new ErrorResponse(FORBIDDEN.getReasonPhrase(), errors)
       );
   }
 }

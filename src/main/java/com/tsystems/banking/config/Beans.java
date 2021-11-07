@@ -1,7 +1,6 @@
 package com.tsystems.banking.config;
 
 import com.auth0.jwt.algorithms.Algorithm;
-import com.tsystems.banking.exceptions.AuthExceptionHandler;
 import com.tsystems.banking.services.jwt.JwtService;
 import com.tsystems.banking.services.jwt.JwtServiceImplementation;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,7 +8,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 
 @Configuration
 @EnableAsync
@@ -35,10 +33,5 @@ public class Beans {
   @Bean
   public AppConfig appConfig() {
     return new AppConfig();
-  }
-
-  @Bean
-  public AuthenticationFailureHandler authenticationFailureHandler() {
-    return new AuthExceptionHandler();
   }
 }
