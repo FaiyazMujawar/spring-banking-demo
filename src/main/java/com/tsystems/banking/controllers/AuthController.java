@@ -16,7 +16,6 @@ import com.tsystems.banking.models.User;
 import com.tsystems.banking.services.account.AccountService;
 import com.tsystems.banking.services.jwt.JwtService;
 import com.tsystems.banking.services.user.UserService;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
@@ -87,7 +86,9 @@ public class AuthController {
       )
     );
 
-    accountService.createAccount(new Account(user.getId(), 0.0));
+    Account account = accountService.createAccount(
+      new Account(user.getId(), 0.0)
+    );
 
     // Generate accessToken & refreshToken for the user
     String accessToken = jwtService.signToken(
@@ -104,12 +105,20 @@ public class AuthController {
       Optional.empty()
     );
 
-    Map<String, String> tokens = new HashMap<>();
-    tokens.put("accessToken", accessToken);
-    tokens.put("refreshToken", refreshToken);
+    Map<String, Object> result = Map.ofEntries(
+      Map.entry("username", username),
+      Map.entry("accountNumber", account.getId()),
+      Map.entry(
+        "tokens",
+        Map.ofEntries(
+          Map.entry("accessToken", accessToken),
+          Map.entry("refreshToken", refreshToken)
+        )
+      )
+    );
 
     response.setContentType(APPLICATION_JSON_VALUE);
-    return ResponseEntity.ok().body(new SuccessfulResponse(tokens));
+    return ResponseEntity.ok().body(new SuccessfulResponse(result));
   }
 
   @PostMapping(path = "/refresh")
@@ -138,8 +147,9 @@ public class AuthController {
         Optional.of(appConfig.getJwtExpirationTimeInMillis())
       );
 
-      Map<String, String> tokens = new HashMap<>();
-      tokens.put("accessToken", accessToken);
+      Map<String, String> tokens = Map.ofEntries(
+        Map.entry("token", accessToken)
+      );
 
       response.setContentType(APPLICATION_JSON_VALUE);
       return ResponseEntity.ok().body(new SuccessfulResponse(tokens));

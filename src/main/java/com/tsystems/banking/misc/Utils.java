@@ -1,5 +1,6 @@
 package com.tsystems.banking.misc;
 
+import com.tsystems.banking.exceptions.InvalidJwtException;
 import java.text.DecimalFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -92,13 +93,13 @@ public class Utils {
   }
 
   public static String getTokenFromAuthHeader(String authHeader)
-    throws Exception {
+    throws InvalidJwtException {
     if (authHeader == null || authHeader.isBlank()) {
-      throw new Exception(Constants.ACCESS_TOKEN_REQUIRED_ERROR);
+      throw new InvalidJwtException(Constants.ACCESS_TOKEN_REQUIRED_ERROR);
     }
 
     if (!authHeader.startsWith("Bearer ")) {
-      throw new Exception(Constants.AUTH_HEADER_MALFORMED_ERROR);
+      throw new InvalidJwtException(Constants.AUTH_HEADER_MALFORMED_ERROR);
     }
 
     return authHeader.substring(Constants.TOKEN_PREFIX.length());

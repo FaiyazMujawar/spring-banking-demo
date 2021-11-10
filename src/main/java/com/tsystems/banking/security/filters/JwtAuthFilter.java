@@ -10,7 +10,6 @@ import com.tsystems.banking.api.response.LoginResponse;
 import com.tsystems.banking.config.AppConfig;
 import com.tsystems.banking.services.jwt.JwtService;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.servlet.FilterChain;
@@ -116,8 +115,9 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
     response.setStatus(FORBIDDEN.value());
     response.setContentType(APPLICATION_JSON_VALUE);
 
-    Map<String, String> errors = new HashMap<>();
-    errors.put("message", failed.getLocalizedMessage());
+    Map<String, String> errors = Map.ofEntries(
+      Map.entry("message", failed.getLocalizedMessage())
+    );
 
     new ObjectMapper()
     .writeValue(

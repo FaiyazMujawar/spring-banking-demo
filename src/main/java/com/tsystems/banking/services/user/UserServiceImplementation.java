@@ -1,5 +1,6 @@
 package com.tsystems.banking.services.user;
 
+import com.tsystems.banking.exceptions.UserNotFoundException;
 import com.tsystems.banking.misc.Constants;
 import com.tsystems.banking.models.User;
 import com.tsystems.banking.repository.UserRepository;
@@ -27,17 +28,21 @@ public class UserServiceImplementation
   }
 
   @Override
-  public User findById(Long userId) throws Exception {
+  public User findById(Long userId) throws UserNotFoundException {
     return userRepository
       .findById(userId)
-      .orElseThrow(() -> new Exception(Constants.USER_NOT_FOUND_ERROR));
+      .orElseThrow(
+        () -> new UserNotFoundException(Constants.USER_NOT_FOUND_ERROR)
+      );
   }
 
   @Override
-  public User findByUsername(String username) throws Exception {
+  public User findByUsername(String username) throws UserNotFoundException {
     return userRepository
       .findByUsername(username)
-      .orElseThrow(() -> new Exception(Constants.USER_NOT_FOUND_ERROR));
+      .orElseThrow(
+        () -> new UserNotFoundException(Constants.USER_NOT_FOUND_ERROR)
+      );
   }
 
   @Override

@@ -11,14 +11,15 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.tsystems.banking.api.request.GetBalanceInput;
 import com.tsystems.banking.api.request.UpdateBalanceInput;
 import com.tsystems.banking.api.response.SuccessfulResponse;
+import com.tsystems.banking.exceptions.AccountNotFoundException;
 import com.tsystems.banking.exceptions.ApiException;
+import com.tsystems.banking.exceptions.UserNotFoundException;
 import com.tsystems.banking.misc.Constants;
 import com.tsystems.banking.models.Account;
 import com.tsystems.banking.models.User;
 import com.tsystems.banking.services.account.AccountService;
 import com.tsystems.banking.services.mail.MailService;
 import com.tsystems.banking.services.user.UserService;
-import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -58,17 +59,20 @@ public class AccountController {
     @RequestBody @Valid GetBalanceInput getBalanceInput,
     HttpServletResponse response
   )
-    throws ApiException {
-    Long accountId = getBalanceInput.getAccountId();
-    Account account = accountService.findById(accountId);
+    throws Exception {
+    User user = null;
+    Account account = null;
 
+    Long accountId = getBalanceInput.getAccountId();
     String username = (String) getAuthenticatedUser().getPrincipal();
 
-    User user = null;
     try {
+      account = accountService.findById(accountId);
       user = userService.findByUsername(username);
-    } catch (Exception e) {
-      throw new ApiException(UNAUTHORIZED, Constants.USER_NOT_FOUND_ERROR);
+    } catch (AccountNotFoundException e) {
+      throw new ApiException(BAD_REQUEST, e.getLocalizedMessage());
+    } catch (UserNotFoundException e) {
+      throw new ApiException(UNAUTHORIZED, e.getLocalizedMessage());
     }
 
     if (!user.getId().equals(account.getUserId())) {
@@ -78,8 +82,9 @@ public class AccountController {
       );
     }
 
-    Map<String, Double> balance = new HashMap<>();
-    balance.put("balance", account.getBalance());
+    Map<String, Double> balance = Map.ofEntries(
+      Map.entry("balance", account.getBalance())
+    );
 
     response.setContentType(APPLICATION_JSON_VALUE);
     return ResponseEntity.ok().body(new SuccessfulResponse(balance));
@@ -91,16 +96,19 @@ public class AccountController {
     HttpServletResponse response
   )
     throws Exception {
-    Long accountId = depositAmountInput.getAccountId();
-    Account account = accountService.findById(accountId);
+    User user = null;
+    Account account = null;
 
+    Long accountId = depositAmountInput.getAccountId();
     String username = (String) getAuthenticatedUser().getPrincipal();
 
-    User user = null;
     try {
+      account = accountService.findById(accountId);
       user = userService.findByUsername(username);
-    } catch (ApiException e) {
-      throw new ApiException(UNAUTHORIZED, Constants.USER_NOT_FOUND_ERROR);
+    } catch (AccountNotFoundException e) {
+      throw new ApiException(BAD_REQUEST, e.getLocalizedMessage());
+    } catch (UserNotFoundException e) {
+      throw new ApiException(UNAUTHORIZED, e.getLocalizedMessage());
     }
 
     if (!user.getId().equals(account.getUserId())) {
@@ -149,21 +157,24 @@ public class AccountController {
     HttpServletResponse response
   )
     throws Exception {
+    User user = null;
+    Account account = null;
+
     Long accountId = withdrawAmountInput.getAccountId();
     Double amount = withdrawAmountInput.getAmount();
+    String username = (String) getAuthenticatedUser().getPrincipal();
 
     if (amount <= 0) {
       throw new ApiException(BAD_REQUEST, Constants.INVALID_AMOUNT_ERROR);
     }
 
-    Account account = accountService.findById(accountId);
-
-    String username = (String) getAuthenticatedUser().getPrincipal();
-    User user = null;
     try {
+      account = accountService.findById(accountId);
       user = userService.findByUsername(username);
-    } catch (ApiException e) {
-      throw new ApiException(UNAUTHORIZED, Constants.USER_NOT_FOUND_ERROR);
+    } catch (AccountNotFoundException e) {
+      throw new ApiException(BAD_REQUEST, e.getLocalizedMessage());
+    } catch (UserNotFoundException e) {
+      throw new ApiException(UNAUTHORIZED, e.getLocalizedMessage());
     }
 
     if (!user.getId().equals(account.getUserId())) {

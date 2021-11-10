@@ -10,7 +10,6 @@ import com.tsystems.banking.api.response.ErrorResponse;
 import com.tsystems.banking.services.jwt.JwtService;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -69,8 +68,9 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
         response.setStatus(FORBIDDEN.value());
         response.setContentType(APPLICATION_JSON_VALUE);
 
-        Map<String, Object> errors = new HashMap<>();
-        errors.put("message", e.getMessage());
+        Map<String, String> errors = Map.ofEntries(
+          Map.entry("message", e.getLocalizedMessage())
+        );
 
         ErrorResponse errorResponse = new ErrorResponse(
           FORBIDDEN.getReasonPhrase(),

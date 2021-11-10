@@ -29,15 +29,19 @@ public class ExceptionHandlers {
       .body(
         new ErrorResponse(
           apiException.getExceptionType().getReasonPhrase(),
-          apiException.getMessage()
+          Map.ofEntries(
+            Map.entry("message", apiException.getLocalizedMessage())
+          )
         )
       );
   }
 
   @ExceptionHandler(value = { HttpMessageNotReadableException.class })
   public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException() {
-    Map<String, String> error = new HashMap<>();
-    error.put("message", "Request body not readable");
+    Map<String, String> error = Map.ofEntries(
+      Map.entry("message", "Request body not readable")
+    );
+
     return ResponseEntity
       .badRequest()
       .body(new ErrorResponse(BAD_REQUEST.getReasonPhrase(), error));
@@ -80,7 +84,7 @@ public class ExceptionHandlers {
       .body(
         new ErrorResponse(
           INTERNAL_SERVER_ERROR.getReasonPhrase(),
-          exception.getMessage()
+          exception.getLocalizedMessage()
         )
       );
   }
