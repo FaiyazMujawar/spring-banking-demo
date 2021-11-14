@@ -1,23 +1,46 @@
-package com.tsystems.banking.api.request;
+package com.tsystems.banking.dto.request;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Range;
 
-public class RegisterInput {
+@ApiModel
+public class RegisterRequest {
   @NotNull(message = "First name is required")
+  @ApiModelProperty(
+    name = "firstName",
+    notes = "First name of the user",
+    required = true
+  )
   private String firstName;
 
   @NotNull(message = "Last name is required")
+  @ApiModelProperty(
+    name = "lastName",
+    notes = "Last name of the user",
+    required = true
+  )
   private String lastName;
 
   @NotNull(message = "email is required")
   @Email(message = "Please provide a valid email")
+  @ApiModelProperty(
+    name = "email",
+    notes = "Email of the user",
+    required = true
+  )
   private String email;
 
   @NotNull(message = "Password is required")
   @Min(value = 5, message = "Password must be at least 5 characters long")
+  @ApiModelProperty(
+    name = "password",
+    notes = "Password of the user",
+    required = true
+  )
   private String password;
 
   @NotNull(message = "Contact is required")
@@ -26,9 +49,14 @@ public class RegisterInput {
     max = 9999999999L,
     message = "Contact must be 10 digits long"
   )
+  @ApiModelProperty(
+    name = "contact",
+    notes = "Contact number of the user",
+    required = true
+  )
   private Long contact;
 
-  public RegisterInput() {}
+  public RegisterRequest() {}
 
   /**
    * @return the firstName

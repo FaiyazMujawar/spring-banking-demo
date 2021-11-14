@@ -11,7 +11,7 @@ public interface AccountService {
 
   List<Account> findAllWithMinimumBalance(Double minimumBalance);
 
-  Account updateAccount(Account account);
+  Account updateAccount(Account account) throws AccountNotFoundException;
 
   Boolean existsById(Long accountId);
 }

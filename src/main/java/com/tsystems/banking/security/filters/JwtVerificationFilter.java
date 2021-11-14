@@ -6,7 +6,7 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tsystems.banking.api.response.ErrorResponse;
+import com.tsystems.banking.dto.response.ErrorResponse;
 import com.tsystems.banking.services.jwt.JwtService;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,7 +40,10 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
     String endpoint = request.getServletPath();
 
     // If endpoint is open, do nothing, pass to next filter in chain
-    if (endpoint.matches("/api/auth/.*|/login|/api/health")) {
+    if (
+      endpoint.matches("/api/auth.*|/api/health.*") ||
+      !endpoint.startsWith("/api")
+    ) {
       filterChain.doFilter(request, response);
     } else {
       try {

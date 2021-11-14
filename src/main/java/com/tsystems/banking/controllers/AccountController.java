@@ -1,26 +1,29 @@
 package com.tsystems.banking.controllers;
 
-import static com.tsystems.banking.misc.Utils.getAmountDepositMail;
-import static com.tsystems.banking.misc.Utils.getAmountWithdrawMail;
-import static com.tsystems.banking.misc.Utils.getAuthenticatedUser;
-import static com.tsystems.banking.misc.Utils.getDoubleWithPrecision;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.tsystems.banking.api.request.GetBalanceInput;
-import com.tsystems.banking.api.request.UpdateBalanceInput;
-import com.tsystems.banking.api.response.SuccessfulResponse;
+import com.tsystems.banking.dto.DtoMapper;
+import com.tsystems.banking.dto.request.GetBalanceRequest;
+import com.tsystems.banking.dto.request.UpdateBalanceRequest;
+import com.tsystems.banking.dto.response.ErrorResponse;
+import com.tsystems.banking.dto.response.GetBalanceResponse;
+import com.tsystems.banking.dto.response.UpdateBalanceResponse;
 import com.tsystems.banking.exceptions.AccountNotFoundException;
 import com.tsystems.banking.exceptions.ApiException;
 import com.tsystems.banking.exceptions.UserNotFoundException;
 import com.tsystems.banking.misc.Constants;
+import com.tsystems.banking.misc.Utils;
 import com.tsystems.banking.models.Account;
 import com.tsystems.banking.models.User;
 import com.tsystems.banking.services.account.AccountService;
 import com.tsystems.banking.services.mail.MailService;
 import com.tsystems.banking.services.user.UserService;
-import java.util.Map;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,16 +58,42 @@ public class AccountController {
   }
 
   @GetMapping(path = "/balance")
-  public ResponseEntity<SuccessfulResponse> getAccountBalance(
-    @RequestBody @Valid GetBalanceInput getBalanceInput,
+  @ApiOperation(
+    value = "Get account balance",
+    notes = "Controller for getting account balance"
+  )
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        code = 200,
+        message = "Ok",
+        response = GetBalanceResponse.class
+      ),
+      @ApiResponse(
+        code = 400,
+        message = "Bad Request",
+        response = ErrorResponse.class
+      ),
+      @ApiResponse(
+        code = 401,
+        message = "Unauthorized",
+        response = ErrorResponse.class
+      ),
+    }
+  )
+  public ResponseEntity<GetBalanceResponse> getAccountBalance(
+    @ApiParam(
+      required = true,
+      value = "Account number to get balance for"
+    ) @RequestBody @Valid GetBalanceRequest getBalanceRequest,
     HttpServletResponse response
   )
     throws Exception {
     User user = null;
     Account account = null;
 
-    Long accountId = getBalanceInput.getAccountId();
-    String username = (String) getAuthenticatedUser().getPrincipal();
+    Long accountId = getBalanceRequest.getAccountId();
+    String username = (String) Utils.getAuthenticatedUser().getPrincipal();
 
     try {
       account = accountService.findById(accountId);
@@ -82,25 +111,49 @@ public class AccountController {
       );
     }
 
-    Map<String, Double> balance = Map.ofEntries(
-      Map.entry("balance", account.getBalance())
-    );
-
     response.setContentType(APPLICATION_JSON_VALUE);
-    return ResponseEntity.ok().body(new SuccessfulResponse(balance));
+    return ResponseEntity
+      .ok()
+      .body(DtoMapper.toGetBalanceResponse(account.getBalance()));
   }
 
   @PostMapping(path = "/deposit")
-  public ResponseEntity<SuccessfulResponse> depositAmount(
-    @RequestBody @Valid UpdateBalanceInput depositAmountInput,
+  @ApiOperation(
+    value = "Deposit amount in account",
+    notes = "Controller for depositing amount in account"
+  )
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        code = 200,
+        message = "Ok",
+        response = UpdateBalanceResponse.class
+      ),
+      @ApiResponse(
+        code = 400,
+        message = "Bad Request",
+        response = ErrorResponse.class
+      ),
+      @ApiResponse(
+        code = 401,
+        message = "Unauthorized",
+        response = ErrorResponse.class
+      ),
+    }
+  )
+  public ResponseEntity<UpdateBalanceResponse> depositAmount(
+    @ApiParam(
+      required = true,
+      value = "Account number and amount to deposit"
+    ) @RequestBody @Valid UpdateBalanceRequest depositAmountRequest,
     HttpServletResponse response
   )
     throws Exception {
     User user = null;
     Account account = null;
 
-    Long accountId = depositAmountInput.getAccountId();
-    String username = (String) getAuthenticatedUser().getPrincipal();
+    Long accountId = depositAmountRequest.getAccountId();
+    String username = (String) Utils.getAuthenticatedUser().getPrincipal();
 
     try {
       account = accountService.findById(accountId);
@@ -118,51 +171,83 @@ public class AccountController {
       );
     }
 
-    if (depositAmountInput.getAmount() <= 0) {
+    if (depositAmountRequest.getAmount() <= 0) {
       throw new ApiException(BAD_REQUEST, Constants.INVALID_AMOUNT_ERROR);
     }
 
-    account.setBalance(account.getBalance() + depositAmountInput.getAmount());
+    account.setBalance(account.getBalance() + depositAmountRequest.getAmount());
 
     accountService.updateAccount(account);
 
-    String mailBody = getAmountDepositMail(
+    String mailBody = Utils.getAmountDepositMail(
       user.getFirstName(),
       accountId,
-      depositAmountInput.getAmount()
+      depositAmountRequest.getAmount()
     );
 
-    mailService.sendHtmlMail(
-      user.getEmail(),
-      Constants.ACCOUNT_ACTIVITY_SUBJECT,
-      mailBody
-    );
+    try {
+      mailService.sendHtmlMail(
+        user.getEmail(),
+        Constants.ACCOUNT_ACTIVITY_SUBJECT,
+        mailBody
+      );
+    } catch (Exception e) {
+      System.err.println(
+        "Deposit mail not sent, Error: " + e.getLocalizedMessage()
+      );
+    }
 
     response.setContentType(APPLICATION_JSON_VALUE);
     return ResponseEntity
       .ok()
       .body(
-        new SuccessfulResponse(
+        DtoMapper.toUpdateBalanceDto(
           String.format(
             Constants.AMOUNT_DEPOSITED_MESSAGE,
-            getDoubleWithPrecision(depositAmountInput.getAmount(), 2)
+            Utils.getDoubleWithPrecision(depositAmountRequest.getAmount(), 2)
           )
         )
       );
   }
 
   @PostMapping(path = "/withdraw")
-  public ResponseEntity<SuccessfulResponse> withdrawAmount(
-    @RequestBody @Valid UpdateBalanceInput withdrawAmountInput,
+  @ApiOperation(
+    value = "Withdraw amount from account",
+    notes = "Controller for withdrawing amount from account"
+  )
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        code = 200,
+        message = "Ok",
+        response = GetBalanceResponse.class
+      ),
+      @ApiResponse(
+        code = 400,
+        message = "Bad Request",
+        response = ErrorResponse.class
+      ),
+      @ApiResponse(
+        code = 401,
+        message = "Unauthorized",
+        response = ErrorResponse.class
+      ),
+    }
+  )
+  public ResponseEntity<UpdateBalanceResponse> withdrawAmount(
+    @ApiParam(
+      required = true,
+      value = "Account number and amount to withdraw"
+    ) @RequestBody @Valid UpdateBalanceRequest withdrawAmountRequest,
     HttpServletResponse response
   )
     throws Exception {
     User user = null;
     Account account = null;
 
-    Long accountId = withdrawAmountInput.getAccountId();
-    Double amount = withdrawAmountInput.getAmount();
-    String username = (String) getAuthenticatedUser().getPrincipal();
+    Long accountId = withdrawAmountRequest.getAccountId();
+    Double amount = withdrawAmountRequest.getAmount();
+    String username = (String) Utils.getAuthenticatedUser().getPrincipal();
 
     if (amount <= 0) {
       throw new ApiException(BAD_REQUEST, Constants.INVALID_AMOUNT_ERROR);
@@ -191,26 +276,32 @@ public class AccountController {
     account.setBalance(account.getBalance() - amount);
     accountService.updateAccount(account);
 
-    String mailBody = getAmountWithdrawMail(
+    String mailBody = Utils.getAmountWithdrawMail(
       user.getFirstName(),
       accountId,
       amount
     );
 
-    mailService.sendHtmlMail(
-      user.getEmail(),
-      Constants.ACCOUNT_ACTIVITY_SUBJECT,
-      mailBody
-    );
+    try {
+      mailService.sendHtmlMail(
+        user.getEmail(),
+        Constants.ACCOUNT_ACTIVITY_SUBJECT,
+        mailBody
+      );
+    } catch (Exception e) {
+      System.err.println(
+        "Withdraw mail not sent, Error: " + e.getLocalizedMessage()
+      );
+    }
 
     response.setContentType(APPLICATION_JSON_VALUE);
     return ResponseEntity
       .ok()
       .body(
-        new SuccessfulResponse(
+        DtoMapper.toUpdateBalanceDto(
           String.format(
             Constants.AMOUNT_WITHDRAWN_MESSAGE,
-            getDoubleWithPrecision(amount, 2)
+            Utils.getDoubleWithPrecision(amount, 2)
           )
         )
       );

@@ -1,7 +1,17 @@
-package com.tsystems.banking.api.response;
+package com.tsystems.banking.dto.response;
 
-public class LoginResponse {
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+@ApiModel(description = "Successful Login Response")
+public class LoginResponse extends SuccessfulResponse {
+  @ApiModelProperty(name = "accessToken", notes = "Signed access token")
   private String accessToken;
+
+  @ApiModelProperty(
+    name = "refreshToken",
+    notes = "Refresh token to renew the expired access token"
+  )
   private String refreshToken;
 
   /**

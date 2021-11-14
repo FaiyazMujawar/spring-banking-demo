@@ -4,10 +4,10 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tsystems.banking.api.request.UsernamePasswordInput;
-import com.tsystems.banking.api.response.ErrorResponse;
-import com.tsystems.banking.api.response.LoginResponse;
 import com.tsystems.banking.config.AppConfig;
+import com.tsystems.banking.dto.DtoMapper;
+import com.tsystems.banking.dto.request.LoginRequest;
+import com.tsystems.banking.dto.response.ErrorResponse;
 import com.tsystems.banking.services.jwt.JwtService;
 import java.io.IOException;
 import java.util.Map;
@@ -53,8 +53,8 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
     try {
       // Extracting username/password from request to
       // UsernamePasswordAuthRequest class
-      UsernamePasswordInput authRequest = new ObjectMapper()
-      .readValue(request.getInputStream(), UsernamePasswordInput.class);
+      LoginRequest authRequest = new ObjectMapper()
+      .readValue(request.getInputStream(), LoginRequest.class);
 
       // Creating authentication token from username/password
       UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -101,7 +101,7 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
     new ObjectMapper()
     .writeValue(
         response.getOutputStream(),
-        new LoginResponse(accessToken, refreshToken)
+        DtoMapper.toLoginDto(accessToken, refreshToken)
       );
   }
 

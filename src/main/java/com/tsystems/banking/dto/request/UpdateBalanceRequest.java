@@ -1,17 +1,30 @@
-package com.tsystems.banking.api.request;
+package com.tsystems.banking.dto.request;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
-public class UpdateBalanceInput {
+@ApiModel(description = "Update Balance Request")
+public class UpdateBalanceRequest {
   @NotNull(message = "Account number is required")
+  @ApiModelProperty(
+    name = "accountId",
+    notes = "Account number of the account",
+    required = true
+  )
   private Long accountId;
 
   @NotNull(message = "Amount is required")
   @Positive(message = "Amount must be greater that 0")
+  @ApiModelProperty(
+    name = "amount",
+    notes = "Amount to deposit/withdraw",
+    required = true
+  )
   private Double amount;
 
-  public UpdateBalanceInput() {}
+  public UpdateBalanceRequest() {}
 
   /**
    * @return the accountId

@@ -2,12 +2,16 @@ package com.tsystems.banking.controllers;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.tsystems.banking.api.request.RegisterInput;
-import com.tsystems.banking.api.response.SuccessfulResponse;
 import com.tsystems.banking.config.AppConfig;
+import com.tsystems.banking.dto.DtoMapper;
+import com.tsystems.banking.dto.request.RegisterRequest;
+import com.tsystems.banking.dto.response.ErrorResponse;
+import com.tsystems.banking.dto.response.RefreshTokenResponse;
+import com.tsystems.banking.dto.response.RegisterResponse;
 import com.tsystems.banking.exceptions.ApiException;
 import com.tsystems.banking.misc.Constants;
 import com.tsystems.banking.misc.Utils;
@@ -16,13 +20,15 @@ import com.tsystems.banking.models.User;
 import com.tsystems.banking.services.account.AccountService;
 import com.tsystems.banking.services.jwt.JwtService;
 import com.tsystems.banking.services.user.UserService;
-import java.util.Map;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -61,28 +67,49 @@ public class AuthController {
   }
 
   @PostMapping(path = "/register")
-  public ResponseEntity<SuccessfulResponse> registerUser(
-    @RequestBody @Valid RegisterInput registerInput,
+  @ApiOperation(
+    value = "Register user",
+    notes = "Controller for registering user on the API"
+  )
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        code = 200,
+        message = "Ok",
+        response = RegisterResponse.class
+      ),
+      @ApiResponse(
+        code = 400,
+        message = "Bad Request",
+        response = ErrorResponse.class
+      ),
+    }
+  )
+  public ResponseEntity<RegisterResponse> registerUser(
+    @ApiParam(
+      required = true,
+      value = "User details for registering"
+    ) @RequestBody @Valid RegisterRequest registerRequest,
     HttpServletRequest request,
     HttpServletResponse response
   ) {
     // Generate a username from email
     String username =
-      registerInput.getEmail().split("@")[0] + (int) (Math.random() * 100);
+      registerRequest.getEmail().split("@")[0] + (int) (Math.random() * 100);
 
-    if (userService.existsByEmail(registerInput.getEmail())) {
+    if (userService.existsByEmail(registerRequest.getEmail())) {
       throw new ApiException(BAD_REQUEST, Constants.EMAIL_IN_USE_ERROR);
     }
 
     // Create a new user
     User user = userService.createUser(
       new User(
-        registerInput.getFirstName(),
-        registerInput.getLastName(),
+        registerRequest.getFirstName(),
+        registerRequest.getLastName(),
         username,
-        registerInput.getEmail(),
-        passwordEncoder.encode(registerInput.getPassword()),
-        registerInput.getContact()
+        registerRequest.getEmail(),
+        passwordEncoder.encode(registerRequest.getPassword()),
+        registerRequest.getContact()
       )
     );
 
@@ -105,24 +132,39 @@ public class AuthController {
       Optional.empty()
     );
 
-    Map<String, Object> result = Map.ofEntries(
-      Map.entry("username", username),
-      Map.entry("accountNumber", account.getId()),
-      Map.entry(
-        "tokens",
-        Map.ofEntries(
-          Map.entry("accessToken", accessToken),
-          Map.entry("refreshToken", refreshToken)
-        )
-      )
-    );
-
     response.setContentType(APPLICATION_JSON_VALUE);
-    return ResponseEntity.ok().body(new SuccessfulResponse(result));
+    return ResponseEntity
+      .ok()
+      .body(
+        DtoMapper.toRegisterResponse(
+          username,
+          account.getId(),
+          accessToken,
+          refreshToken
+        )
+      );
   }
 
   @PostMapping(path = "/refresh")
-  public ResponseEntity<SuccessfulResponse> refreshToken(
+  @ApiOperation(
+    value = "Refresh Access token",
+    notes = "Controller for refreshing expired access token"
+  )
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        code = 200,
+        message = "Ok",
+        response = RegisterResponse.class
+      ),
+      @ApiResponse(
+        code = 400,
+        message = "Bad Request",
+        response = ErrorResponse.class
+      ),
+    }
+  )
+  public ResponseEntity<RefreshTokenResponse> refreshToken(
     HttpServletRequest request,
     HttpServletResponse response
   )
@@ -134,7 +176,7 @@ public class AuthController {
 
       jwtService.verifyToken(token);
     } catch (Exception e) {
-      throw new ApiException(HttpStatus.FORBIDDEN, e.getLocalizedMessage());
+      throw new ApiException(FORBIDDEN, e.getLocalizedMessage());
     }
 
     String username = jwtService.getSubjectFromToken(token);
@@ -147,12 +189,10 @@ public class AuthController {
         Optional.of(appConfig.getJwtExpirationTimeInMillis())
       );
 
-      Map<String, String> tokens = Map.ofEntries(
-        Map.entry("token", accessToken)
-      );
-
       response.setContentType(APPLICATION_JSON_VALUE);
-      return ResponseEntity.ok().body(new SuccessfulResponse(tokens));
+      return ResponseEntity
+        .ok()
+        .body(DtoMapper.toRefreshTokenResponse(accessToken));
     } catch (Exception e) {
       throw new ApiException(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
     }

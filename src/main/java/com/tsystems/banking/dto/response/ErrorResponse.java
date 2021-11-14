@@ -1,11 +1,28 @@
-package com.tsystems.banking.api.response;
+package com.tsystems.banking.dto.response;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import java.time.ZonedDateTime;
 
+@ApiModel(description = "Error Response model")
 public class ErrorResponse {
+  @ApiModelProperty(name = "timestamp", notes = "Time at sending the response")
   private final String timestamp;
+
+  @ApiModelProperty(
+    name = "result",
+    notes = "Result of the request",
+    value = "FAILURE"
+  )
   private final String result;
+
+  @ApiModelProperty(name = "code", notes = "HTTP error code phrase")
   private final String code;
+
+  @ApiModelProperty(
+    name = "error",
+    notes = "Actual error. A map of error messages"
+  )
   private final Object error;
 
   /**

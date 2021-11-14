@@ -1,9 +1,7 @@
 package com.tsystems.banking.config;
 
 import static com.tsystems.banking.misc.Utils.getLowBalanceAlertMail;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 
-import com.tsystems.banking.exceptions.ApiException;
 import com.tsystems.banking.misc.Constants;
 import com.tsystems.banking.models.Account;
 import com.tsystems.banking.models.User;
@@ -52,7 +50,9 @@ public class SchedulerConfiguration {
           try {
             user = userService.findById(account.getUserId());
           } catch (Exception e) {
-            throw new ApiException(NOT_FOUND, Constants.USER_NOT_FOUND_ERROR);
+            System.err.println(
+              Constants.USER_NOT_FOUND_ERROR + " " + account.getUserId()
+            );
           }
 
           String mailBody = getLowBalanceAlertMail(
@@ -61,11 +61,17 @@ public class SchedulerConfiguration {
             appConfig.getMinimumAccountBalance()
           );
 
-          mailService.sendHtmlMail(
-            user.getEmail(),
-            Constants.LOW_BALANCE_SUBJECT,
-            mailBody
-          );
+          try {
+            mailService.sendHtmlMail(
+              user.getEmail(),
+              Constants.ACCOUNT_ACTIVITY_SUBJECT,
+              mailBody
+            );
+          } catch (Exception e) {
+            System.err.println(
+              "Alert mail not sent, Error: " + e.getLocalizedMessage()
+            );
+          }
         }
       );
   }

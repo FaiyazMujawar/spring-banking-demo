@@ -1,12 +1,16 @@
-package com.tsystems.banking.api.request;
+package com.tsystems.banking.dto.request;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.NotNull;
 
-public class GetBalanceInput {
+@ApiModel(description = "Request body to get account balance")
+public class GetBalanceRequest {
   @NotNull(message = "Account number is required")
+  @ApiModelProperty(name = "AccountId", notes = "Account number")
   private Long accountId;
 
-  public GetBalanceInput() {}
+  public GetBalanceRequest() {}
 
   /**
    * @return the accountId

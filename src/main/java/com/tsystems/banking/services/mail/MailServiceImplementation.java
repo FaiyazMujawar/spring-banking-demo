@@ -1,9 +1,7 @@
 package com.tsystems.banking.services.mail;
 
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-
 import com.tsystems.banking.config.AppConfig;
-import com.tsystems.banking.exceptions.ApiException;
+import com.tsystems.banking.exceptions.MailingException;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +30,8 @@ public class MailServiceImplementation implements MailService {
 
   @Override
   @Async
-  public void sendHtmlMail(String receiver, String subject, String body) {
+  public void sendHtmlMail(String receiver, String subject, String body)
+    throws MailingException {
     MimeMessage mimeMessage = mailSender.createMimeMessage();
     MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
 
@@ -45,7 +44,7 @@ public class MailServiceImplementation implements MailService {
       mailSender.send(mimeMessage);
     } catch (MessagingException e) {
       e.printStackTrace();
-      throw new ApiException(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+      throw new MailingException(e.getLocalizedMessage());
     }
   }
 }
