@@ -1,9 +1,11 @@
 package com.tsystems.banking.models;
 
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 @Entity
@@ -31,7 +33,24 @@ public class User {
   @Column(nullable = false)
   private Long contact;
 
+  @OneToMany(mappedBy = "accountOwner")
+  private List<Account> accounts;
+
   public User() {}
+
+  /**
+   * @return the accounts
+   */
+  public List<Account> getAccounts() {
+    return accounts;
+  }
+
+  /**
+   * @param accounts the accounts to set
+   */
+  public void setAccounts(List<Account> accounts) {
+    this.accounts = accounts;
+  }
 
   /**
    * @param id

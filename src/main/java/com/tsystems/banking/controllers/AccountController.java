@@ -104,7 +104,7 @@ public class AccountController {
       throw new ApiException(UNAUTHORIZED, e.getLocalizedMessage());
     }
 
-    if (!user.getId().equals(account.getUserId())) {
+    if (!isAccountOwner(account, user)) {
       throw new ApiException(
         UNAUTHORIZED,
         Constants.UNAUTHORIZED_ACCOUNT_ACCESS_ERROR
@@ -164,7 +164,7 @@ public class AccountController {
       throw new ApiException(UNAUTHORIZED, e.getLocalizedMessage());
     }
 
-    if (!user.getId().equals(account.getUserId())) {
+    if (!isAccountOwner(account, user)) {
       throw new ApiException(
         UNAUTHORIZED,
         Constants.UNAUTHORIZED_ACCOUNT_ACCESS_ERROR
@@ -262,7 +262,7 @@ public class AccountController {
       throw new ApiException(UNAUTHORIZED, e.getLocalizedMessage());
     }
 
-    if (!user.getId().equals(account.getUserId())) {
+    if (!isAccountOwner(account, user)) {
       throw new ApiException(
         UNAUTHORIZED,
         Constants.UNAUTHORIZED_ACCOUNT_ACCESS_ERROR
@@ -305,5 +305,9 @@ public class AccountController {
           )
         )
       );
+  }
+
+  private Boolean isAccountOwner(Account account, User user) {
+    return account.getAccountOwner().getId().equals(user.getId());
   }
 }

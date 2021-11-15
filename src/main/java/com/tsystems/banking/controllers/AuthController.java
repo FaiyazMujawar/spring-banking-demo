@@ -117,9 +117,7 @@ public class AuthController {
         );
     }
 
-    Account account = accountService.createAccount(
-      new Account(user.getId(), 0.0)
-    );
+    Account account = accountService.createAccount(new Account(user, 0.0));
 
     // Generate accessToken & refreshToken for the user
     String accessToken = jwtService.signToken(

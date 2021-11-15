@@ -1,9 +1,12 @@
 package com.tsystems.banking.models;
 
+import static javax.persistence.FetchType.EAGER;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -13,8 +16,31 @@ public class Account {
   @GeneratedValue
   private Long id;
 
-  @Column(nullable = false)
-  private Long userId;
+  @ManyToOne(fetch = EAGER)
+  private User accountOwner;
+
+  /**
+   * @param accountOwner
+   * @param balance
+   */
+  public Account(User accountOwner, Double balance) {
+    this.setAccountOwner(accountOwner);
+    this.balance = balance;
+  }
+
+  /**
+   * @return the accountOwner
+   */
+  public User getAccountOwner() {
+    return accountOwner;
+  }
+
+  /**
+   * @param accountOwner the accountOwner to set
+   */
+  public void setAccountOwner(User accountOwner) {
+    this.accountOwner = accountOwner;
+  }
 
   @Column(nullable = false)
   private Double balance;
@@ -26,16 +52,6 @@ public class Account {
    * @param userId
    * @param balance
    */
-  public Account(Long id, Long userId, Double balance) {
-    this.id = id;
-    this.userId = userId;
-    this.balance = balance;
-  }
-
-  public Account(Long userId, Double balance) {
-    this.userId = userId;
-    this.balance = balance;
-  }
 
   /**
    * @return the id
@@ -49,20 +65,6 @@ public class Account {
    */
   public void setId(Long id) {
     this.id = id;
-  }
-
-  /**
-   * @return the userId
-   */
-  public Long getUserId() {
-    return userId;
-  }
-
-  /**
-   * @param userId the userId to set
-   */
-  public void setUserId(Long userId) {
-    this.userId = userId;
   }
 
   /**

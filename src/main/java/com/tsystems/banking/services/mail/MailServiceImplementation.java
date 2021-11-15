@@ -43,7 +43,6 @@ public class MailServiceImplementation implements MailService {
 
       mailSender.send(mimeMessage);
     } catch (MessagingException e) {
-      e.printStackTrace();
       throw new MailingException(e.getLocalizedMessage());
     }
   }
