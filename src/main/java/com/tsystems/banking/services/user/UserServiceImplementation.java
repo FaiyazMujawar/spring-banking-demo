@@ -77,4 +77,13 @@ public class UserServiceImplementation
       authorities
     );
   }
+
+  @Override
+  public User findByEmail(String email) throws UserNotFoundException {
+    return userRepository
+      .findByEmail(email)
+      .orElseThrow(
+        () -> new UserNotFoundException(Constants.USER_NOT_FOUND_ERROR)
+      );
+  }
 }

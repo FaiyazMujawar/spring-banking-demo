@@ -56,7 +56,29 @@ public class RegisterRequest {
   )
   private Long contact;
 
+  @NotNull(message = "Please specify if user already has account")
+  @ApiModelProperty(
+    name = "isExistingUser",
+    notes = "Whether user is already registered",
+    required = true
+  )
+  private Boolean isExistingUser;
+
   public RegisterRequest() {}
+
+  /**
+   * @return the isExistingUser
+   */
+  public Boolean getIsExistingUser() {
+    return isExistingUser;
+  }
+
+  /**
+   * @param isExistingUser the isExistingUser to set
+   */
+  public void setIsExistingUser(Boolean isExistingUser) {
+    this.isExistingUser = isExistingUser;
+  }
 
   /**
    * @return the firstName

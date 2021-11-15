@@ -93,25 +93,29 @@ public class AuthController {
     HttpServletRequest request,
     HttpServletResponse response
   ) {
-    // Generate a username from email
-    String username =
-      registerRequest.getEmail().split("@")[0] + (int) (Math.random() * 100);
+    String email = registerRequest.getEmail();
+    String username = Utils.generateUsernameFromEmail(email);
+    User user = null;
 
-    if (userService.existsByEmail(registerRequest.getEmail())) {
-      throw new ApiException(BAD_REQUEST, Constants.EMAIL_IN_USE_ERROR);
+    if (userService.existsByEmail(email)) {
+      if (registerRequest.getIsExistingUser()) {
+        user = userService.findByEmail(email);
+      } else {
+        throw new ApiException(BAD_REQUEST, Constants.EMAIL_IN_USE_ERROR);
+      }
+    } else {
+      user =
+        userService.createUser(
+          new User(
+            registerRequest.getFirstName(),
+            registerRequest.getLastName(),
+            username,
+            email,
+            passwordEncoder.encode(registerRequest.getPassword()),
+            registerRequest.getContact()
+          )
+        );
     }
-
-    // Create a new user
-    User user = userService.createUser(
-      new User(
-        registerRequest.getFirstName(),
-        registerRequest.getLastName(),
-        username,
-        registerRequest.getEmail(),
-        passwordEncoder.encode(registerRequest.getPassword()),
-        registerRequest.getContact()
-      )
-    );
 
     Account account = accountService.createAccount(
       new Account(user.getId(), 0.0)

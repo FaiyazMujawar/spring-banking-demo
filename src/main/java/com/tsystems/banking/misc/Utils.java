@@ -104,4 +104,8 @@ public class Utils {
 
     return authHeader.substring(Constants.TOKEN_PREFIX.length());
   }
+
+  public static String generateUsernameFromEmail(String email) {
+    return email.split("@")[0] + (int) (Math.random() * 100);
+  }
 }

@@ -9,6 +9,8 @@ public interface UserService {
 
   User findByUsername(String username) throws UserNotFoundException;
 
+  User findByEmail(String email) throws UserNotFoundException;
+
   List<User> findAllById(List<Long> ids);
 
   User createUser(User user);
