@@ -9,7 +9,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.tsystems.banking.config.AppConfig;
 import com.tsystems.banking.dto.DtoMapper;
 import com.tsystems.banking.dto.request.RegisterRequest;
-import com.tsystems.banking.dto.response.ErrorResponse;
 import com.tsystems.banking.dto.response.RefreshTokenResponse;
 import com.tsystems.banking.dto.response.RegisterResponse;
 import com.tsystems.banking.exceptions.ApiException;
@@ -77,11 +76,6 @@ public class AuthController {
         code = 200,
         message = "Ok",
         response = RegisterResponse.class
-      ),
-      @ApiResponse(
-        code = 400,
-        message = "Bad Request",
-        response = ErrorResponse.class
       ),
     }
   )
@@ -158,11 +152,6 @@ public class AuthController {
         code = 200,
         message = "Ok",
         response = RegisterResponse.class
-      ),
-      @ApiResponse(
-        code = 400,
-        message = "Bad Request",
-        response = ErrorResponse.class
       ),
     }
   )

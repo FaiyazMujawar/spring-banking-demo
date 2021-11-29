@@ -31,4 +31,29 @@ public interface Constants {
 
   String MINIMUM_BALANCE_CHECK_CRON =
     "${scheduling.check_minimum_balance_cron}";
+
+  String INVALID_ID_ERROR = "Please provide valid ID";
+
+  String INVALID_ACCOUNT_ARG_ERROR = "Please provide valid 'Account' object";
+
+  String INVALID_USER_ARG_ERROR = "Please provide valid 'User' object";
+
+  String INVALID_USERNAME_ERROR = "Please provide valid username";
+
+  String INVALID_EMAIL_ERROR = "Please provide valid email";
+
+  String INVALID_TOKEN_ERROR = "Please provide valid token";
+
+  String INVALID_SUBJECT_ERROR = "Please provide valid token subject";
+
+  String INVALID_ISSUER_ERROR = "Please provide valid token issuer";
+
+  String INVALID_EXPIRATION_TIME_ERROR =
+    "Please provide valid token expiration time";
+
+  String JWT_AUTH_ERROR = "Invalid or corrupted access token";
+
+  String REQUEST_BODY_UNREADABLE_ERROR = "Request body cannot be read properly";
+
+  String INVALID_REQUEST_BODY_ERROR = "Please provide a valid body";
 }

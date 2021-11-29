@@ -5,8 +5,8 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsystems.banking.dto.response.ErrorResponse;
+import com.tsystems.banking.misc.Utils;
 import com.tsystems.banking.services.jwt.JwtService;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -79,8 +79,9 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
           FORBIDDEN.getReasonPhrase(),
           errors
         );
-        new ObjectMapper()
-        .writeValue(response.getOutputStream(), errorResponse);
+        Utils
+          .getObjectMapper()
+          .writeValue(response.getOutputStream(), errorResponse);
       }
     }
   }

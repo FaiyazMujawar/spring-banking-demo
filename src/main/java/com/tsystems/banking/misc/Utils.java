@@ -1,11 +1,28 @@
 package com.tsystems.banking.misc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsystems.banking.exceptions.InvalidJwtException;
 import java.text.DecimalFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class Utils {
+  private static ObjectMapper objectMapper = null;
+
+  private static String getMail(String name, String body) {
+    return (
+      "Dear ," +
+      name +
+      "<br />" +
+      "<br />" +
+      body +
+      "<br />" +
+      "<br />" +
+      "Thank you," +
+      "<br />" +
+      "Bank"
+    );
+  }
 
   public static Authentication getAuthenticatedUser() {
     return SecurityContextHolder.getContext().getAuthentication();
@@ -17,19 +34,10 @@ public class Utils {
     Double minimumBalance
   ) {
     String body =
-      "Dear %s," +
-      "<br />" +
-      "<br />" +
-      "This email is to alert you that your account with account number <b>%d</b> has less balance than the minimum amount of <b>%s</b>. We urge you to please maintain the minimum balance" +
-      "<br />" +
-      "<br />" +
-      "Thank you," +
-      "<br />" +
-      "Bank";
+      "This email is to alert you that your account with account number <b>%d</b> has less balance than the minimum amount of <b>%s</b>. We urge you to please maintain the minimum balance";
 
     return String.format(
-      body,
-      name,
+      getMail(name, body),
       accountNumber,
       getDoubleWithPrecision(minimumBalance, 2)
     );
@@ -41,19 +49,10 @@ public class Utils {
     Double amount
   ) {
     String body =
-      "Dear %s," +
-      "<br />" +
-      "<br />" +
-      "This email is to inform you that your account with account number <b>%d</b> has been credited with amount <b>%s</b>." +
-      "<br />" +
-      "<br />" +
-      "Thank you," +
-      "<br />" +
-      "Bank";
+      "This email is to inform you that your account with account number <b>%d</b> has been credited with amount <b>%s</b>.";
 
     return String.format(
-      body,
-      name,
+      getMail(name, body),
       accountNumber,
       getDoubleWithPrecision(amount, 2)
     );
@@ -65,19 +64,10 @@ public class Utils {
     Double amount
   ) {
     String body =
-      "Dear %s," +
-      "<br />" +
-      "<br />" +
-      "This email is to inform you that your account with account number <b>%d</b> has been debited with amount <b>%s</b>." +
-      "<br />" +
-      "<br />" +
-      "Thank you," +
-      "<br />" +
-      "Bank";
+      "This email is to inform you that your account with account number <b>%d</b> has been debited with amount <b>%s</b>.";
 
     return String.format(
-      body,
-      name,
+      getMail(name, body),
       accountNumber,
       getDoubleWithPrecision(amount, 2)
     );
@@ -107,5 +97,13 @@ public class Utils {
 
   public static String generateUsernameFromEmail(String email) {
     return email.split("@")[0] + (int) (Math.random() * 100);
+  }
+
+  public static ObjectMapper getObjectMapper() {
+    if (objectMapper == null) {
+      objectMapper = new ObjectMapper();
+    }
+
+    return objectMapper;
   }
 }

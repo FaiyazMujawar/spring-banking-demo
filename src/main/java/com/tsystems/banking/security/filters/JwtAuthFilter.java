@@ -1,13 +1,15 @@
 package com.tsystems.banking.security.filters;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsystems.banking.config.AppConfig;
 import com.tsystems.banking.dto.DtoMapper;
 import com.tsystems.banking.dto.request.LoginRequest;
 import com.tsystems.banking.dto.response.ErrorResponse;
+import com.tsystems.banking.misc.Constants;
+import com.tsystems.banking.misc.Utils;
 import com.tsystems.banking.services.jwt.JwtService;
 import java.io.IOException;
 import java.util.Map;
@@ -50,24 +52,43 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
     HttpServletResponse response
   )
     throws AuthenticationException {
+    LoginRequest authRequest = null;
+
     try {
-      // Extracting username/password from request to
-      // UsernamePasswordAuthRequest class
-      LoginRequest authRequest = new ObjectMapper()
-      .readValue(request.getInputStream(), LoginRequest.class);
-
-      // Creating authentication token from username/password
-      UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-        authRequest.getUsername(),
-        authRequest.getPassword()
-      );
-
-      // Authenticating the user
-      return authenticationManager.authenticate(authToken);
+      // Extracting username/password from request to LoginRequest class
+      authRequest =
+        Utils
+          .getObjectMapper()
+          .readValue(request.getInputStream(), LoginRequest.class);
     } catch (IOException e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
+      response.setContentType(APPLICATION_JSON_VALUE);
+      response.setStatus(BAD_REQUEST.value());
+
+      try {
+        Utils
+          .getObjectMapper()
+          .writeValue(
+            response.getOutputStream(),
+            new ErrorResponse(
+              BAD_REQUEST.getReasonPhrase(),
+              Map.ofEntries(
+                Map.entry("message", Constants.REQUEST_BODY_UNREADABLE_ERROR)
+              )
+            )
+          );
+      } catch (IOException ioException) {}
+
+      return null;
     }
+
+    // Creating authentication token from username/password
+    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+      authRequest.getUsername(),
+      authRequest.getPassword()
+    );
+
+    // Authenticating the user
+    return authenticationManager.authenticate(authToken);
   }
 
   @Override
@@ -98,8 +119,9 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
 
     response.setContentType(APPLICATION_JSON_VALUE);
 
-    new ObjectMapper()
-    .writeValue(
+    Utils
+      .getObjectMapper()
+      .writeValue(
         response.getOutputStream(),
         DtoMapper.toLoginDto(accessToken, refreshToken)
       );
@@ -119,8 +141,9 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
       Map.entry("message", failed.getLocalizedMessage())
     );
 
-    new ObjectMapper()
-    .writeValue(
+    Utils
+      .getObjectMapper()
+      .writeValue(
         response.getOutputStream(),
         new ErrorResponse(FORBIDDEN.getReasonPhrase(), errors)
       );

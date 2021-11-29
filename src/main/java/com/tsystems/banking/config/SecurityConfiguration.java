@@ -4,6 +4,7 @@ import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
+import com.tsystems.banking.security.filters.ContentTypeFilter;
 import com.tsystems.banking.security.filters.JwtAuthFilter;
 import com.tsystems.banking.security.filters.JwtVerificationFilter;
 import com.tsystems.banking.services.jwt.JwtService;
@@ -74,6 +75,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
       .addFilterBefore(
         new JwtVerificationFilter(jwtService),
         UsernamePasswordAuthenticationFilter.class
-      );
+      )
+      .addFilterBefore(new ContentTypeFilter(), JwtVerificationFilter.class);
   }
 }

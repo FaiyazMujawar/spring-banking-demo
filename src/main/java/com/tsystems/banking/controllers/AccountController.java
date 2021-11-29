@@ -7,7 +7,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.tsystems.banking.dto.DtoMapper;
 import com.tsystems.banking.dto.request.GetBalanceRequest;
 import com.tsystems.banking.dto.request.UpdateBalanceRequest;
-import com.tsystems.banking.dto.response.ErrorResponse;
 import com.tsystems.banking.dto.response.GetBalanceResponse;
 import com.tsystems.banking.dto.response.UpdateBalanceResponse;
 import com.tsystems.banking.exceptions.AccountNotFoundException;
@@ -29,7 +28,7 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -69,16 +68,6 @@ public class AccountController {
         message = "Ok",
         response = GetBalanceResponse.class
       ),
-      @ApiResponse(
-        code = 400,
-        message = "Bad Request",
-        response = ErrorResponse.class
-      ),
-      @ApiResponse(
-        code = 401,
-        message = "Unauthorized",
-        response = ErrorResponse.class
-      ),
     }
   )
   public ResponseEntity<GetBalanceResponse> getAccountBalance(
@@ -117,7 +106,7 @@ public class AccountController {
       .body(DtoMapper.toGetBalanceResponse(account.getBalance()));
   }
 
-  @PostMapping(path = "/deposit")
+  @PutMapping(path = "/deposit")
   @ApiOperation(
     value = "Deposit amount in account",
     notes = "Controller for depositing amount in account"
@@ -128,16 +117,6 @@ public class AccountController {
         code = 200,
         message = "Ok",
         response = UpdateBalanceResponse.class
-      ),
-      @ApiResponse(
-        code = 400,
-        message = "Bad Request",
-        response = ErrorResponse.class
-      ),
-      @ApiResponse(
-        code = 401,
-        message = "Unauthorized",
-        response = ErrorResponse.class
       ),
     }
   )
@@ -169,10 +148,6 @@ public class AccountController {
         UNAUTHORIZED,
         Constants.UNAUTHORIZED_ACCOUNT_ACCESS_ERROR
       );
-    }
-
-    if (depositAmountRequest.getAmount() <= 0) {
-      throw new ApiException(BAD_REQUEST, Constants.INVALID_AMOUNT_ERROR);
     }
 
     account.setBalance(account.getBalance() + depositAmountRequest.getAmount());
@@ -210,7 +185,7 @@ public class AccountController {
       );
   }
 
-  @PostMapping(path = "/withdraw")
+  @PutMapping(path = "/withdraw")
   @ApiOperation(
     value = "Withdraw amount from account",
     notes = "Controller for withdrawing amount from account"
@@ -221,16 +196,6 @@ public class AccountController {
         code = 200,
         message = "Ok",
         response = GetBalanceResponse.class
-      ),
-      @ApiResponse(
-        code = 400,
-        message = "Bad Request",
-        response = ErrorResponse.class
-      ),
-      @ApiResponse(
-        code = 401,
-        message = "Unauthorized",
-        response = ErrorResponse.class
       ),
     }
   )
@@ -248,10 +213,6 @@ public class AccountController {
     Long accountId = withdrawAmountRequest.getAccountId();
     Double amount = withdrawAmountRequest.getAmount();
     String username = (String) Utils.getAuthenticatedUser().getPrincipal();
-
-    if (amount <= 0) {
-      throw new ApiException(BAD_REQUEST, Constants.INVALID_AMOUNT_ERROR);
-    }
 
     try {
       account = accountService.findById(accountId);

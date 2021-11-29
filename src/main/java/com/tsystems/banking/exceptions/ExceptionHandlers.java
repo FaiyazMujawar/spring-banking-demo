@@ -5,6 +5,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.tsystems.banking.dto.response.ErrorResponse;
+import com.tsystems.banking.misc.Constants;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
@@ -39,7 +40,7 @@ public class ExceptionHandlers {
   @ExceptionHandler(value = { HttpMessageNotReadableException.class })
   public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException() {
     Map<String, String> error = Map.ofEntries(
-      Map.entry("message", "Request body not readable")
+      Map.entry("message", Constants.REQUEST_BODY_UNREADABLE_ERROR)
     );
 
     return ResponseEntity

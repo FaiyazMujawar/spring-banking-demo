@@ -5,13 +5,14 @@ import com.tsystems.banking.models.Account;
 import java.util.List;
 
 public interface AccountService {
-  Account createAccount(Account account);
+  Account createAccount(Account account) throws IllegalArgumentException;
 
-  Account findById(Long accountId) throws AccountNotFoundException;
+  Account findById(Long accountId)
+    throws AccountNotFoundException, IllegalArgumentException;
 
-  List<Account> findAllWithMinimumBalance(Double minimumBalance);
+  List<Account> findAllWithMinimumBalance(Double minimumBalance)
+    throws IllegalArgumentException;
 
-  Account updateAccount(Account account) throws AccountNotFoundException;
-
-  Boolean existsById(Long accountId);
+  Account updateAccount(Account account)
+    throws AccountNotFoundException, IllegalArgumentException;
 }

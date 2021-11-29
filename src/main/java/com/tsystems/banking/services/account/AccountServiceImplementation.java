@@ -22,11 +22,20 @@ public class AccountServiceImplementation implements AccountService {
 
   @Override
   public Account createAccount(Account account) {
+    if (account == null) {
+      throw new IllegalArgumentException(Constants.INVALID_ACCOUNT_ARG_ERROR);
+    }
+
     return accountRepository.save(account);
   }
 
   @Override
-  public Account findById(Long accountId) throws AccountNotFoundException {
+  public Account findById(Long accountId)
+    throws AccountNotFoundException, IllegalArgumentException {
+    if (accountId == null || accountId < 1) {
+      throw new IllegalArgumentException(Constants.INVALID_ID_ERROR);
+    }
+
     return accountRepository
       .findById(accountId)
       .orElseThrow(
@@ -39,23 +48,27 @@ public class AccountServiceImplementation implements AccountService {
 
   @Override
   public Account updateAccount(Account account)
-    throws AccountNotFoundException {
-    if (existsById(account.getId())) {
-      return accountRepository.save(account);
+    throws AccountNotFoundException, IllegalArgumentException {
+    if (account == null) {
+      throw new IllegalArgumentException(Constants.INVALID_ACCOUNT_ARG_ERROR);
     }
 
-    throw new AccountNotFoundException(
-      String.format(Constants.ACCOUNT_NOT_FOUND_ERROR, account.getId())
-    );
+    if (!accountRepository.existsById(account.getId())) {
+      throw new AccountNotFoundException(
+        String.format(Constants.ACCOUNT_NOT_FOUND_ERROR, account.getId())
+      );
+    }
+
+    return accountRepository.save(account);
   }
 
   @Override
-  public Boolean existsById(Long accountId) {
-    return accountRepository.existsById(accountId);
-  }
+  public List<Account> findAllWithMinimumBalance(Double minimumBalance)
+    throws IllegalArgumentException {
+    if (minimumBalance == null || minimumBalance < 1) {
+      throw new IllegalArgumentException(Constants.INVALID_AMOUNT_ERROR);
+    }
 
-  @Override
-  public List<Account> findAllWithMinimumBalance(Double minimumBalance) {
     return accountRepository.findByBalanceLessThan(minimumBalance);
   }
 }

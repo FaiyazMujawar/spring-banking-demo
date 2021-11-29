@@ -39,9 +39,9 @@ public class AppConfig {
       case "mo":
         // months
         return time * 30 * 24 * 60 * 60 * 1000;
-      case "y":
+      case "yr":
         // years
-        return time * 365 * 30 * 24 * 60 * 60 * 1000;
+        return time * 365 * 24 * 60 * 60 * 1000;
     }
 
     return time * 1000;

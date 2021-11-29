@@ -6,7 +6,6 @@ import com.tsystems.banking.models.User;
 import com.tsystems.banking.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,16 +27,12 @@ public class UserServiceImplementation
   }
 
   @Override
-  public User findById(Long userId) throws UserNotFoundException {
-    return userRepository
-      .findById(userId)
-      .orElseThrow(
-        () -> new UserNotFoundException(Constants.USER_NOT_FOUND_ERROR)
-      );
-  }
+  public User findByUsername(String username)
+    throws UserNotFoundException, IllegalArgumentException {
+    if (username == null || username.isBlank()) {
+      throw new IllegalArgumentException(Constants.INVALID_USERNAME_ERROR);
+    }
 
-  @Override
-  public User findByUsername(String username) throws UserNotFoundException {
     return userRepository
       .findByUsername(username)
       .orElseThrow(
@@ -47,17 +42,20 @@ public class UserServiceImplementation
 
   @Override
   public User createUser(User user) {
+    if (user == null) {
+      throw new IllegalArgumentException(Constants.INVALID_USER_ARG_ERROR);
+    }
+
     return userRepository.save(user);
   }
 
   @Override
-  public Boolean existsByEmail(String email) {
-    return userRepository.existsByEmail(email);
-  }
+  public Boolean existsByEmail(String email) throws IllegalArgumentException {
+    if (email == null || email.isBlank()) {
+      throw new IllegalArgumentException(Constants.INVALID_EMAIL_ERROR);
+    }
 
-  @Override
-  public List<User> findAllById(List<Long> ids) {
-    return userRepository.findAllById(ids);
+    return userRepository.existsByEmail(email);
   }
 
   @Override
@@ -79,7 +77,12 @@ public class UserServiceImplementation
   }
 
   @Override
-  public User findByEmail(String email) throws UserNotFoundException {
+  public User findByEmail(String email)
+    throws UserNotFoundException, IllegalArgumentException {
+    if (email == null || email.isBlank()) {
+      throw new IllegalArgumentException(Constants.INVALID_EMAIL_ERROR);
+    }
+
     return userRepository
       .findByEmail(email)
       .orElseThrow(
