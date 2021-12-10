@@ -143,13 +143,6 @@ public class AccountController {
       throw new ApiException(UNAUTHORIZED, e.getLocalizedMessage());
     }
 
-    if (!isAccountOwner(account, user)) {
-      throw new ApiException(
-        UNAUTHORIZED,
-        Constants.UNAUTHORIZED_ACCOUNT_ACCESS_ERROR
-      );
-    }
-
     account.setBalance(account.getBalance() + depositAmountRequest.getAmount());
 
     accountService.updateAccount(account);
