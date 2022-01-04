@@ -28,6 +28,11 @@ public class ContentTypeFilter extends OncePerRequestFilter {
     throws ServletException, IOException {
     String contentType = request.getContentType();
 
+    if (!request.getRequestURI().startsWith("/api")) {
+      filterChain.doFilter(request, response);
+      return;
+    }
+
     if (request.getMethod().equals(GET.name())) {
       if (
         request.getInputStream().isFinished() &&
